@@ -1,0 +1,7 @@
+interactive_map_server_*.log
+*.log
+dist/
+.openai/
+scripts/
+.DS_Store
+Thumbs.db

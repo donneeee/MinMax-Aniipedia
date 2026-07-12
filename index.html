@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MinMax's Map</title>
+    <link rel="stylesheet" href="./styles.css?v=20260712-public-v001">
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="sidebar" aria-label="Map controls">
+        <header class="brand">
+          <div>
+            <h1>MinMax's Map</h1>
+            <p id="appVersion" class="app-version">Version loading</p>
+            <p id="mapMeta" class="database-meta">Database loading</p>
+          </div>
+        </header>
+
+        <section class="panel">
+          <label class="search-label" for="searchInput">Search</label>
+          <input id="searchInput" class="search" type="search" autocomplete="off" placeholder="Name, area, coordinate">
+          <div class="toolbar" aria-label="Filters">
+            <button id="selectAllButton" type="button">All</button>
+            <button id="selectNoneButton" type="button">None</button>
+          </div>
+        </section>
+
+        <section class="panel item-panel">
+          <div class="panel-heading">
+            <h2>Filter</h2>
+            <span id="filterCount" class="filter-count" aria-live="polite">0 / 0</span>
+          </div>
+          <div id="layerTabs" class="layer-tabs" role="tablist" aria-label="Marker layers"></div>
+          <div id="itemList" class="item-list"></div>
+        </section>
+
+        <section class="panel detail-panel" aria-live="polite">
+          <div class="panel-heading">
+            <h2>Selection</h2>
+          </div>
+          <div id="selectionDetail" class="selection empty">No marker selected</div>
+        </section>
+      </aside>
+
+      <section class="map-panel" aria-label="Interactive map">
+        <div class="map-toolbar">
+          <button id="zoomOutButton" type="button" aria-label="Zoom out">-</button>
+          <button id="zoomInButton" type="button" aria-label="Zoom in">+</button>
+          <button id="fitButton" type="button">Fit</button>
+        </div>
+        <div id="coordinateReadout" class="coordinate-readout">X 0, Y 0</div>
+        <div id="mapViewport" class="map-viewport">
+          <div id="mapWorld" class="map-world">
+            <div id="mapTiles" class="map-tiles" aria-hidden="true"></div>
+            <img id="mapImage" class="map-image" alt="Country of Time map">
+          </div>
+          <div id="pinLayer" class="pin-layer"></div>
+        </div>
+      </section>
+    </main>
+
+    <script src="./app.js?v=20260712-public-v001"></script>
+  </body>
+</html>
