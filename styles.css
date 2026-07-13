@@ -148,6 +148,31 @@ button[aria-pressed="true"] {
   border-color: var(--accent);
 }
 
+.map-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.map-tab {
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  padding: 0 6px;
+  border-color: rgba(80, 96, 103, 0.9);
+  background: rgba(17, 22, 25, 0.82);
+  font-weight: 700;
+  line-height: 1.15;
+  white-space: normal;
+}
+
+.map-tab[aria-selected="true"] {
+  border-color: var(--accent);
+  background: rgba(127, 198, 178, 0.18);
+  color: #d7fff4;
+}
+
 .toolbar,
 .map-toolbar {
   display: flex;

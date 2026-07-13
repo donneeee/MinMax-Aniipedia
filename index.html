@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>MinMax's Map</title>
-    <link rel="stylesheet" href="./styles.css?v=20260712-public-v001">
+    <link rel="stylesheet" href="./styles.css?v=20260713-lumin-amber-v003">
   </head>
   <body>
     <main class="app-shell">
@@ -18,11 +18,12 @@
         </header>
 
         <section class="panel">
+          <div id="mapTabs" class="map-tabs" role="tablist" aria-label="Maps"></div>
           <label class="search-label" for="searchInput">Search</label>
           <input id="searchInput" class="search" type="search" autocomplete="off" placeholder="Name, area, coordinate">
           <div class="toolbar" aria-label="Filters">
             <button id="selectAllButton" type="button">All</button>
-            <button id="selectNoneButton" type="button">None</button>
+            <button id="selectNoneButton" type="button">Reset</button>
           </div>
         </section>
 
@@ -53,13 +54,13 @@
         <div id="mapViewport" class="map-viewport">
           <div id="mapWorld" class="map-world">
             <div id="mapTiles" class="map-tiles" aria-hidden="true"></div>
-            <img id="mapImage" class="map-image" alt="Country of Time map">
+            <img id="mapImage" class="map-image" alt="">
           </div>
           <div id="pinLayer" class="pin-layer"></div>
         </div>
       </section>
     </main>
 
-    <script src="./app.js?v=20260712-public-v001"></script>
+    <script src="./app.js?v=20260713-lumin-amber-v003"></script>
   </body>
 </html>

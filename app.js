@@ -1,8 +1,9 @@
-const DATA_URL = "./data/map_site_data.json?v=20260712-special-boss-aniimo";
-const APP_VERSION = "v0.1.0";
+const DATA_URL = "./data/map_site_data.json?v=20260713-lumin-amber-v003";
+const APP_VERSION = "v0.3.4";
 const MIN_SCALE = 0.03;
 const MAX_SCALE = 16;
 const MAP_EDGE_MARGIN = 48;
+const REQUESTED_MAP_ID = new URLSearchParams(window.location.search).get("map");
 const COLORS = [
   "#7fc6b2",
   "#e8bf63",
@@ -21,6 +22,7 @@ const COLORS = [
 const state = {
   data: null,
   enabled: new Set(),
+  activeMapId: REQUESTED_MAP_ID || "country-of-time",
   activeLayer: "items",
   search: "",
   scale: 1,
@@ -35,6 +37,7 @@ const state = {
 const els = {
   mapMeta: document.querySelector("#mapMeta"),
   appVersion: document.querySelector("#appVersion"),
+  mapTabs: document.querySelector("#mapTabs"),
   searchInput: document.querySelector("#searchInput"),
   filterCount: document.querySelector("#filterCount"),
   layerTabs: document.querySelector("#layerTabs"),
@@ -95,6 +98,11 @@ function markerTypeLabel(type) {
   if (type === "underground_entrance") return "Underground Entrance";
   if (type === "morphling_memory") return "Morphling Memory";
   if (type === "lighthouse_book") return "Book";
+  if (type === "astra_transit") return "Astra Transit";
+  if (type === "astra_district") return "Astra District";
+  if (type === "astra_shop") return "Shop";
+  if (type === "pathfinder_challenger") return "Pathfinder Challenge";
+  if (type === "elite_pathfinder_challenger") return "Elite Pathfinder Challenge";
   return "Collectable";
 }
 
@@ -116,7 +124,7 @@ function aniilogLabel(item) {
 }
 
 function aniimoListMeta(item) {
-  return [aniilogLabel(item), item.form_label].filter(Boolean).join(" • ");
+  return [aniilogLabel(item), item.form_label].filter(Boolean).join(" \u2022 ");
 }
 
 function numericSortValue(value) {
@@ -157,9 +165,32 @@ function compareItems(a, b) {
     if (formCompare !== 0) return formCompare;
   }
 
+  const explicitOrderA = Number.isFinite(Number(a.filter_sort_order)) ? Number(a.filter_sort_order) : Infinity;
+  const explicitOrderB = Number.isFinite(Number(b.filter_sort_order)) ? Number(b.filter_sort_order) : Infinity;
+  if (explicitOrderA !== explicitOrderB) return explicitOrderA - explicitOrderB;
+
   const nameCompare = compareText(a.display_name, b.display_name);
   if (nameCompare !== 0) return nameCompare;
   return compareText(a.item_id, b.item_id);
+}
+
+function currentMap() {
+  if (!state.data) return null;
+  return state.data.mapsById.get(state.activeMapId) || state.data.maps[0] || state.data.map;
+}
+
+function spawnOnActiveMap(spawn) {
+  return Boolean(spawn) && spawn.map_id === state.activeMapId;
+}
+
+function activeMapItems() {
+  if (!state.data) return [];
+  const itemIds = state.data.itemIdsByMap.get(state.activeMapId) || new Set();
+  return state.data.items.filter((item) => itemIds.has(item.item_id));
+}
+
+function activeMapSpawnEntries(itemId) {
+  return (state.data.spawnsByItemId.get(itemId) || []).filter(({ spawn }) => spawnOnActiveMap(spawn));
 }
 
 function areaDetailValue(spawn) {
@@ -235,17 +266,20 @@ async function copyDetailValue(element, value) {
 }
 
 function renderMapBase() {
-  const tiles = state.data.map.tiles || [];
+  const map = currentMap();
+  const tiles = map.tiles || [];
   els.mapTiles.textContent = "";
   if (!tiles.length) {
     els.mapTiles.hidden = true;
     els.mapImage.hidden = false;
-    els.mapImage.src = state.data.map.image;
+    els.mapImage.alt = `${map.label} map`;
+    els.mapImage.src = map.image;
     return;
   }
 
   els.mapTiles.hidden = false;
   els.mapImage.hidden = true;
+  els.mapImage.alt = "";
   els.mapImage.removeAttribute("src");
   const fragment = document.createDocumentFragment();
   tiles.forEach((tile) => {
@@ -291,8 +325,9 @@ function restoreMapView(view) {
 
 function setPinScreenPosition(pin, spawn) {
   if (!state.data || !spawn?.normalized) return;
-  pin.style.setProperty("--pin-x", String(spawn.normalized.x * state.data.map.width * state.scale + state.panX));
-  pin.style.setProperty("--pin-y", String(spawn.normalized.y * state.data.map.height * state.scale + state.panY));
+  const map = currentMap();
+  pin.style.setProperty("--pin-x", String(spawn.normalized.x * map.width * state.scale + state.panX));
+  pin.style.setProperty("--pin-y", String(spawn.normalized.y * map.height * state.scale + state.panY));
 }
 
 function positionPins() {
@@ -311,8 +346,9 @@ function applyTransform() {
 }
 
 function mapFitScale(rect = els.mapViewport.getBoundingClientRect()) {
-  const width = state.data.map.width;
-  const height = state.data.map.height;
+  const map = currentMap();
+  const width = map.width;
+  const height = map.height;
   const padding = rect.width < 700 ? 24 : 56;
   return Math.min((rect.width - padding * 2) / width, (rect.height - padding * 2) / height);
 }
@@ -320,8 +356,9 @@ function mapFitScale(rect = els.mapViewport.getBoundingClientRect()) {
 function clampPan() {
   if (!state.data) return;
   const rect = els.mapViewport.getBoundingClientRect();
-  const scaledWidth = state.data.map.width * state.scale;
-  const scaledHeight = state.data.map.height * state.scale;
+  const map = currentMap();
+  const scaledWidth = map.width * state.scale;
+  const scaledHeight = map.height * state.scale;
 
   if (scaledWidth <= rect.width) {
     state.panX = (rect.width - scaledWidth) / 2;
@@ -339,8 +376,9 @@ function clampPan() {
 function fitMap() {
   if (!state.data) return;
   const rect = els.mapViewport.getBoundingClientRect();
-  const width = state.data.map.width;
-  const height = state.data.map.height;
+  const map = currentMap();
+  const width = map.width;
+  const height = map.height;
   state.scale = clamp(mapFitScale(rect), MIN_SCALE, MAX_SCALE);
   state.panX = (rect.width - width * state.scale) / 2;
   state.panY = (rect.height - height * state.scale) / 2;
@@ -368,12 +406,18 @@ function screenToImagePoint(clientX, clientY) {
 }
 
 function imagePointToMap(point) {
-  const transform = state.data.map.transform;
+  const map = currentMap();
+  const transform = map.transform;
   const pointA = transform.point_a_position;
   const pointB = transform.point_b_position;
+  const mapA = transform.map_a_position;
+  const mapB = transform.map_b_position;
+  const offset = transform.map_offset_ui || { x: 0, y: 0 };
+  const localX = (point.x - mapA.x - offset.x) / (mapB.x - mapA.x);
+  const localY = (-point.y - mapA.y - offset.y) / (mapB.y - mapA.y);
   return {
-    x: pointA.x + (point.x / state.data.map.width) * (pointB.x - pointA.x),
-    y: pointA.y + (point.y / state.data.map.height) * (pointB.y - pointA.y),
+    x: pointA.x + localX * (pointB.x - pointA.x),
+    y: pointA.y + localY * (pointB.y - pointA.y),
   };
 }
 
@@ -421,7 +465,7 @@ function makeIcon(className, source) {
 
 function itemPassesFilters(item) {
   if (!item) return false;
-  return true;
+  return (state.data.itemIdsByMap.get(state.activeMapId) || new Set()).has(item.item_id);
 }
 
 function itemMatches(item) {
@@ -497,6 +541,7 @@ function spawnSearchText(spawn) {
 }
 
 function spawnMatches(spawn) {
+  if (!spawnOnActiveMap(spawn)) return false;
   if (!state.enabled.has(spawn.item_id)) return false;
   const item = state.data.itemsById.get(spawn.item_id);
   if (!itemPassesFilters(item)) return false;
@@ -509,7 +554,7 @@ function visibleSpawnEntries() {
   for (const itemId of state.enabled) {
     const item = state.data.itemsById.get(itemId);
     if (!itemPassesFilters(item)) continue;
-    const itemSpawns = state.data.spawnsByItemId.get(itemId) || [];
+    const itemSpawns = activeMapSpawnEntries(itemId);
     const itemMatchesSearch = !state.search || item.search_text.includes(state.search);
     itemSpawns.forEach((entry) => {
       if (!state.search || itemMatchesSearch || entry.spawn.search_text.includes(state.search)) {
@@ -523,7 +568,7 @@ function visibleSpawnEntries() {
 
 function updateFilterCount() {
   if (!els.filterCount || !state.data) return;
-  const activeItems = state.data.items.filter((item) => item.layer_id === state.activeLayer);
+  const activeItems = activeMapItems().filter((item) => item.layer_id === state.activeLayer);
   const selectedCount = activeItems.filter((item) => state.enabled.has(item.item_id)).length;
   els.filterCount.textContent = `${selectedCount} / ${activeItems.length}`;
 }
@@ -568,16 +613,17 @@ function refreshVisibility() {
 function renderItems() {
   els.layerTabs.textContent = "";
   els.itemList.textContent = "";
+  const mapItems = activeMapItems();
   const layers = state.data.layers?.length
     ? state.data.layers
     : [{ id: "items", label: "Items" }, { id: "aniimo", label: "Aniimo" }, { id: "eggs", label: "Eggs" }];
-  const layersWithItems = layers.filter((layer) => state.data.items.some((item) => item.layer_id === layer.id));
+  const layersWithItems = layers.filter((layer) => mapItems.some((item) => item.layer_id === layer.id));
   if (!layersWithItems.some((layer) => layer.id === state.activeLayer)) {
     state.activeLayer = layersWithItems[0]?.id || "";
   }
 
   layersWithItems.forEach((layer) => {
-    const layerItems = state.data.items.filter((item) => item.layer_id === layer.id);
+    const layerItems = mapItems.filter((item) => item.layer_id === layer.id);
 
     const tab = document.createElement("button");
     tab.type = "button";
@@ -664,7 +710,8 @@ function renderItems() {
 
     const count = document.createElement("span");
     count.className = "item-count";
-    count.textContent = item.is_elite_egg && !item.spawn_count ? "No pin" : item.spawn_count;
+    const mapSpawnCount = activeMapSpawnEntries(item.item_id).length;
+    count.textContent = item.is_elite_egg && !mapSpawnCount ? "No pin" : mapSpawnCount;
 
       row.append(icon, text, count);
       section.append(row);
@@ -814,16 +861,28 @@ function selectSpawn(index) {
 function focusSpawn(spawn) {
   const rect = els.mapViewport.getBoundingClientRect();
   const locateScale = clamp(mapFitScale(rect) * 3.5, MIN_SCALE, 0.55);
+  const map = currentMap();
   state.scale = Math.max(state.scale, locateScale);
-  state.panX = rect.width / 2 - spawn.normalized.x * state.data.map.width * state.scale;
-  state.panY = rect.height / 2 - spawn.normalized.y * state.data.map.height * state.scale;
+  state.panX = rect.width / 2 - spawn.normalized.x * map.width * state.scale;
+  state.panY = rect.height / 2 - spawn.normalized.y * map.height * state.scale;
   clampPan();
   applyTransform();
 }
 
 function prepareData(data) {
+  data.maps = Array.isArray(data.maps) && data.maps.length ? data.maps : [data.map];
+  data.maps.forEach((map, index) => {
+    map.id = map.id || (index === 0 ? "country-of-time" : `map-${index + 1}`);
+    map.label = map.label || map.id;
+  });
+  data.mapsById = new Map(data.maps.map((map) => [map.id, map]));
+  data.map = data.maps[0];
+  if (!data.mapsById.has(state.activeMapId)) {
+    state.activeMapId = data.maps[0].id;
+  }
   data.itemsById = new Map();
   data.spawnsByItemId = new Map();
+  data.itemIdsByMap = new Map(data.maps.map((map) => [map.id, new Set()]));
   data.items.forEach((item) => {
     item.layer_id = item.layer_id || (item.is_elite_egg ? "eggs" : "items");
   });
@@ -840,13 +899,82 @@ function prepareData(data) {
     return a.coordinate_key.localeCompare(b.coordinate_key);
   });
   data.spawns.forEach((spawn, index) => {
+    spawn.map_id = spawn.map_id || data.map.id;
     spawn.search_text = spawnSearchText(spawn);
     if (!data.spawnsByItemId.has(spawn.item_id)) {
       data.spawnsByItemId.set(spawn.item_id, []);
     }
     data.spawnsByItemId.get(spawn.item_id).push({ spawn, index });
+    if (!data.itemIdsByMap.has(spawn.map_id)) {
+      data.itemIdsByMap.set(spawn.map_id, new Set());
+    }
+    data.itemIdsByMap.get(spawn.map_id).add(spawn.item_id);
   });
   return data;
+}
+
+function updateMapTabs() {
+  els.mapTabs.querySelectorAll(".map-tab").forEach((tab) => {
+    const selected = tab.dataset.mapId === state.activeMapId;
+    tab.setAttribute("aria-selected", String(selected));
+    tab.tabIndex = selected ? 0 : -1;
+  });
+}
+
+function renderMapTabs() {
+  const fragment = document.createDocumentFragment();
+  state.data.maps.forEach((map) => {
+    const tab = document.createElement("button");
+    tab.type = "button";
+    tab.className = "map-tab";
+    tab.setAttribute("role", "tab");
+    tab.dataset.mapId = map.id;
+    tab.textContent = map.label;
+    tab.addEventListener("click", () => switchMap(map.id));
+    fragment.append(tab);
+  });
+  els.mapTabs.replaceChildren(fragment);
+  updateMapTabs();
+}
+
+function updateMapMeta() {
+  const map = currentMap();
+  const counts = map.counts || state.data.counts || {};
+  els.mapMeta.textContent = [
+    `${counts.spawns || 0} markers`,
+    `${counts.collectable_items || 0} items`,
+    `${counts.aniimo || 0} Aniimo`,
+    `${counts.elite_eggs || 0} eggs`,
+    `${counts.teleports || 0} teleports`,
+    `${counts.ambers || 0} ambers`,
+    `${counts.misc || 0} misc`,
+  ].join(" - ");
+}
+
+function switchMap(mapId) {
+  if (!state.data.mapsById.has(mapId)) return;
+  state.activeMapId = mapId;
+  updateMapTabs();
+  const url = new URL(window.location.href);
+  if (mapId === state.data.maps[0].id) {
+    url.searchParams.delete("map");
+  } else {
+    url.searchParams.set("map", mapId);
+  }
+  window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+  state.selectedPin = null;
+  state.selectedSpawnIndex = null;
+  els.selectionDetail.className = "selection empty";
+  els.selectionDetail.textContent = "No marker selected";
+  els.coordinateReadout.textContent = "X 0, Y 0";
+  const map = currentMap();
+  renderMapBase();
+  els.mapWorld.style.width = `${map.width}px`;
+  els.mapWorld.style.height = `${map.height}px`;
+  renderItems();
+  refreshVisibility();
+  updateMapMeta();
+  fitMap();
 }
 
 function bindEvents() {
@@ -856,8 +984,24 @@ function bindEvents() {
     state.search = normalizedSearch(els.searchInput.value);
     refreshVisibility();
   });
+  els.mapTabs.addEventListener("keydown", (event) => {
+    if (!new Set(["ArrowLeft", "ArrowRight", "Home", "End"]).has(event.key)) return;
+    const tabs = [...els.mapTabs.querySelectorAll(".map-tab")];
+    const currentIndex = tabs.findIndex((tab) => tab.dataset.mapId === state.activeMapId);
+    let nextIndex = currentIndex;
+    if (event.key === "ArrowLeft") nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+    if (event.key === "ArrowRight") nextIndex = (currentIndex + 1) % tabs.length;
+    if (event.key === "Home") nextIndex = 0;
+    if (event.key === "End") nextIndex = tabs.length - 1;
+    event.preventDefault();
+    const nextTab = tabs[nextIndex];
+    if (nextTab) {
+      switchMap(nextTab.dataset.mapId);
+      nextTab.focus();
+    }
+  });
   els.selectAllButton.addEventListener("click", () => {
-    state.data.items.forEach((item) => state.enabled.add(item.item_id));
+    activeMapItems().forEach((item) => state.enabled.add(item.item_id));
     refreshVisibility();
   });
   els.selectNoneButton.addEventListener("click", () => {
@@ -917,22 +1061,9 @@ async function init() {
     throw new Error(`Could not load ${DATA_URL}`);
   }
   state.data = prepareData(await response.json());
-  renderMapBase();
-  els.mapWorld.style.width = `${state.data.map.width}px`;
-  els.mapWorld.style.height = `${state.data.map.height}px`;
   els.appVersion.textContent = APP_VERSION;
-  els.mapMeta.textContent = [
-    `${state.data.counts.spawns} markers`,
-    `${state.data.counts.collectable_items || 0} items`,
-    `${state.data.counts.aniimo || 0} Aniimo`,
-    `${state.data.counts.elite_eggs || 0} eggs`,
-    `${state.data.counts.teleports || 0} teleports`,
-    `${state.data.counts.ambers || 0} ambers`,
-    `${state.data.counts.misc || 0} misc`,
-  ].join(" - ");
-  renderItems();
-  refreshVisibility();
-  fitMap();
+  renderMapTabs();
+  switchMap(state.activeMapId);
 }
 
 init().catch((error) => {

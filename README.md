@@ -2,11 +2,11 @@
 
 Interactive static map for Aniimo world markers.
 
-Version: `v0.1.0`
+Version: `v0.3.4`
 
 ## What Is Included
 
-- A stitched Country of Time map with tiled fallback assets.
+- A stitched Idyll map with tiled fallback assets.
 - Filterable marker layers for items, Aniimo, eggs, teleports, ambers, and misc markers.
 - Generated marker database at `data/map_site_data.json`.
 - Static assets under `assets/`, so the site can be hosted without a build step.
