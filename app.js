@@ -1,5 +1,5 @@
-const DATA_URL = "./data/map_site_data.json?v=20260713-spawn-cleanup-v004";
-const APP_VERSION = "v0.3.5";
+const DATA_URL = "./data/map_site_data.json?v=20260713-map-region-v010";
+const APP_VERSION = "v0.3.11";
 const MIN_SCALE = 0.03;
 const MAX_SCALE = 16;
 const MAP_EDGE_MARGIN = 48;
@@ -177,6 +177,11 @@ function compareItems(a, b) {
 function currentMap() {
   if (!state.data) return null;
   return state.data.mapsById.get(state.activeMapId) || state.data.maps[0] || state.data.map;
+}
+
+function mapLabelForSpawn(spawn) {
+  if (!state.data || !spawn) return "";
+  return state.data.mapsById.get(spawn.map_id)?.label || "";
 }
 
 function spawnOnActiveMap(spawn) {
@@ -736,6 +741,7 @@ function renderPins(entries) {
       spawn.layer_id === "teleports" ? "pin-teleport" : "",
       spawn.layer_id === "ambers" ? "pin-amber" : "",
       spawn.marker_type === "underground_entrance" ? "pin-underground" : "",
+      spawn.is_underground ? "pin-underground-marker" : "",
     ]
       .filter(Boolean)
       .join(" ");
@@ -744,17 +750,22 @@ function renderPins(entries) {
     setPinScreenPosition(pin, spawn);
     pin.setAttribute(
       "aria-label",
-      `${spawn.display_name} ${spawn.area_name || spawn.region_name || ""} ${formatCoordinate(spawn.x)} ${formatCoordinate(spawn.y)}`,
+      `${spawn.display_name} ${spawn.area_name || spawn.region_name || ""} ${formatCoordinate(spawn.x)} ${formatCoordinate(spawn.y)}${spawn.is_underground ? " underground" : ""}`,
     );
 
     const icon = makeIcon("pin-icon", item.icon);
+    const undergroundBadge = spawn.is_underground && state.data.underground_badge_icon
+      ? makeIcon("pin-underground-badge", state.data.underground_badge_icon)
+      : null;
 
     const label = document.createElement("span");
     label.className = "pin-label";
     const areaLabel = spawn.area_name || spawn.region_name;
     const labelName = areaLabel ? `${spawn.display_name} (${areaLabel})` : spawn.display_name;
     label.textContent = `${labelName} ${Math.round(spawn.x)}, ${Math.round(spawn.y)}`;
-    pin.append(icon, label);
+    pin.append(icon);
+    if (undergroundBadge) pin.append(undergroundBadge);
+    pin.append(label);
     pin.tabIndex = -1;
     pin.addEventListener("mousedown", preventControlFocus);
     pin.addEventListener("click", (event) => {
@@ -806,10 +817,26 @@ function selectSpawn(index) {
     copyDetailValue(strong, spawn.display_name);
   });
   const small = document.createElement("small");
-  small.textContent = [
+  small.className = "selection-subtitle";
+  const subtitle = [
     spawn.form_label,
-    areaDetailValue(spawn) || item.region_name || markerTypeLabel(spawn.marker_type),
+    areaDetailValue(spawn) || mapLabelForSpawn(spawn) || markerTypeLabel(spawn.marker_type),
   ].filter(Boolean).join(" - ");
+  if (subtitle) {
+    const subtitleText = document.createElement("span");
+    subtitleText.className = "selection-subtitle-text";
+    subtitleText.textContent = spawn.is_underground ? `${subtitle},` : subtitle;
+    small.append(subtitleText);
+  }
+  if (spawn.is_underground) {
+    const underground = document.createElement("span");
+    underground.className = "selection-underground";
+    if (state.data.underground_badge_icon) {
+      underground.append(makeIcon("selection-underground-icon", state.data.underground_badge_icon));
+    }
+    underground.append(document.createTextNode("Underground"));
+    small.append(underground);
+  }
   titleText.append(strong, small);
   title.append(icon, titleText);
 
@@ -825,7 +852,7 @@ function selectSpawn(index) {
   const areaValue = areaDetailValue(spawn);
   if (areaValue) rows.push(["Area", areaValue]);
   if (spawn.form_label || item.form_label) rows.push(["Form", spawn.form_label || item.form_label]);
-  const regionValue = spawn.region_name || item.region_name;
+  const regionValue = spawn.region_name || mapLabelForSpawn(spawn);
   if (regionValue && regionValue !== areaValue && !areaValue.includes(regionValue)) {
     rows.push(["Region", regionValue]);
   }

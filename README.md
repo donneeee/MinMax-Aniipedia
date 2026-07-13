@@ -2,7 +2,7 @@
 
 Interactive static map for Aniimo world markers.
 
-Version: `v0.3.5`
+Version: `v0.3.11`
 
 ## What Is Included
 
