@@ -1,5 +1,5 @@
-const DATA_URL = "./data/map_site_data.json?v=20260713-lumin-amber-v003";
-const APP_VERSION = "v0.3.4";
+const DATA_URL = "./data/map_site_data.json?v=20260713-spawn-cleanup-v004";
+const APP_VERSION = "v0.3.5";
 const MIN_SCALE = 0.03;
 const MAX_SCALE = 16;
 const MAP_EDGE_MARGIN = 48;
