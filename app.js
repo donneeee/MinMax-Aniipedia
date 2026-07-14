@@ -1,5 +1,5 @@
 const DATA_URL = "./data/map_site_data.json?v=20260714-discord-sync-v022";
-const APP_VERSION = "v0.3.22";
+const APP_VERSION = "v0.3.23";
 const SUPABASE_TRACKING_TABLE = "map_user_tracking";
 const SUPABASE_COMPLETION_TABLE = "map_user_completed_markers";
 const TRACKING_TICK_MS = 1000;
@@ -10,6 +10,8 @@ const MAP_TILE_DETAIL_SCALE = 0.55;
 const PIN_CANVAS_THRESHOLD = 450;
 const CANVAS_HIT_CELL_SIZE = 128;
 const REQUESTED_MAP_ID = new URLSearchParams(window.location.search).get("map");
+const MOBILE_LAYOUT_QUERY = window.matchMedia("(max-width: 820px)");
+const DISCORD_SYNC_SETUP_URL = "https://github.com/donneeee/Min-Max-s-Interactive-Map/blob/main/DISCORD_SYNC_SETUP.md";
 const COLORS = [
   "#7fc6b2",
   "#e8bf63",
@@ -55,6 +57,7 @@ const state = {
   dragStart: null,
   selectedPin: null,
   selectedSpawnIndex: null,
+  mobileSelectionMinimized: true,
   sidebarView: "map",
   tracking: new Map(),
   completed: new Map(),
@@ -87,6 +90,9 @@ const els = {
   layerTabs: document.querySelector("#layerTabs"),
   itemList: document.querySelector("#itemList"),
   selectionDetail: document.querySelector("#selectionDetail"),
+  mobileSelectionPanel: document.querySelector("#mobileSelectionPanel"),
+  mobileSelectionDetail: document.querySelector("#mobileSelectionDetail"),
+  mobileSelectionToggle: document.querySelector("#mobileSelectionToggle"),
   mapPanel: document.querySelector(".map-panel"),
   mapViewport: document.querySelector("#mapViewport"),
   mapWorld: document.querySelector("#mapWorld"),
@@ -443,6 +449,16 @@ function renderSyncCallout(title, message, action) {
     callout.append(button);
   }
   return callout;
+}
+
+function addSyncSetupLink(callout) {
+  const guide = document.createElement("a");
+  guide.className = "sync-guide-link";
+  guide.href = DISCORD_SYNC_SETUP_URL;
+  guide.target = "_blank";
+  guide.rel = "noreferrer";
+  guide.textContent = "Open setup guide";
+  callout.append(guide);
 }
 
 function refreshAccountViews() {
@@ -809,10 +825,12 @@ function renderSettings() {
   els.settingsContent.textContent = "";
   const config = getSyncConfig();
   if (!config.configured) {
-    els.settingsContent.append(renderSyncCallout(
+    const callout = renderSyncCallout(
       "Discord sync setup",
-      "Add your Supabase project URL and publishable key to app-config.js, then enable Discord in Supabase Authentication.",
-    ));
+      "Set up Supabase and Discord once, then add the safe browser values to app-config.js.",
+    );
+    addSyncSetupLink(callout);
+    els.settingsContent.append(callout);
     return;
   }
   if (!state.authClient || state.authStatus === "loading" || state.authStatus === "redirecting") {
@@ -905,6 +923,7 @@ function setSidebarView(view) {
   const nextView = ["map", "tracking", "settings"].includes(view) ? view : "map";
   state.sidebarView = nextView;
   updateWorkspaceTabs();
+  updateMobileSelectionPanel();
   if (nextView === "tracking") {
     renderTracking();
     startTrackingTicker();
@@ -935,6 +954,7 @@ function fallbackCopyText(text) {
 }
 
 function resetDocumentScroll() {
+  if (MOBILE_LAYOUT_QUERY.matches) return;
   const scrollingElement = document.scrollingElement || document.documentElement;
   if (window.scrollX || window.scrollY) {
     window.scrollTo(0, 0);
@@ -1001,6 +1021,31 @@ function renderMapBase() {
     els.mapImage.src = map.fallback_image;
   };
   scheduleMapTileDetail();
+}
+
+function updateMobileSelectionPanel() {
+  const isMobile = MOBILE_LAYOUT_QUERY.matches;
+  const minimized = isMobile && state.mobileSelectionMinimized;
+  const hasSelection = state.selectedSpawnIndex !== null;
+  els.mobileSelectionPanel.hidden = !isMobile || state.sidebarView !== "map" || !hasSelection;
+  els.mobileSelectionPanel.classList.toggle("is-minimized", minimized);
+  els.mobileSelectionToggle.textContent = minimized ? "+" : "-";
+  els.mobileSelectionToggle.setAttribute("aria-expanded", String(!minimized));
+  const label = minimized ? "Expand selection" : "Minimize selection";
+  els.mobileSelectionToggle.setAttribute("aria-label", label);
+  els.mobileSelectionToggle.title = label;
+}
+
+function setMobileSelectionMinimized(minimized) {
+  state.mobileSelectionMinimized = Boolean(minimized);
+  updateMobileSelectionPanel();
+}
+
+function clearSelectionDetails(message) {
+  [els.selectionDetail, els.mobileSelectionDetail].forEach((detail) => {
+    detail.className = "selection empty";
+    detail.textContent = message;
+  });
 }
 
 function scheduleMapTileDetail() {
@@ -1741,8 +1786,14 @@ function selectSpawn(index) {
   if (pin) pin.classList.add("selected");
   state.selectedPin = pin;
   if (state.canvasMode) scheduleCanvasRender();
-  els.selectionDetail.className = "selection";
-  els.selectionDetail.innerHTML = "";
+  renderSelectionDetail(els.selectionDetail, spawn, item);
+  renderSelectionDetail(els.mobileSelectionDetail, spawn, item);
+  setMobileSelectionMinimized(false);
+}
+
+function renderSelectionDetail(detail, spawn, item) {
+  detail.className = "selection";
+  detail.replaceChildren();
 
   const title = document.createElement("div");
   title.className = "selection-title";
@@ -1829,7 +1880,7 @@ function selectSpawn(index) {
   locate.type = "button";
   locate.textContent = "Locate";
   locate.addEventListener("click", () => focusSpawn(spawn));
-  els.selectionDetail.append(title, grid, locate);
+  detail.append(title, grid, locate);
 
   if (trackable) {
     const trackingId = trackingIdForSpawn(spawn);
@@ -1854,7 +1905,7 @@ function selectSpawn(index) {
       track.disabled = !state.authClient;
       if (state.authClient) track.addEventListener("click", signInWithDiscord);
     }
-    els.selectionDetail.append(track);
+    detail.append(track);
   }
 }
 
@@ -1969,8 +2020,7 @@ async function loadMapData(mapId, token) {
     state.loadingMapId = null;
     state.mapLoadError = error;
     updateMapMeta();
-    els.selectionDetail.className = "selection empty";
-    els.selectionDetail.textContent = "The map loaded, but its marker data could not be loaded.";
+    clearSelectionDetails("The map loaded, but its marker data could not be loaded.");
     console.error(error);
   }
 }
@@ -2067,8 +2117,8 @@ function switchMap(mapId) {
   window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
   state.selectedPin = null;
   state.selectedSpawnIndex = null;
-  els.selectionDetail.className = "selection empty";
-  els.selectionDetail.textContent = "No marker selected";
+  clearSelectionDetails("No marker selected");
+  setMobileSelectionMinimized(true);
   els.coordinateReadout.textContent = "X 0, Y 0";
   const map = currentMap();
   renderMapBase();
@@ -2084,6 +2134,14 @@ function switchMap(mapId) {
 function bindEvents() {
   window.addEventListener("scroll", resetDocumentScroll, { passive: true });
   els.mapViewport.addEventListener("scroll", resetMapScroll, { passive: true });
+  els.mobileSelectionToggle.addEventListener("click", () => {
+    setMobileSelectionMinimized(!state.mobileSelectionMinimized);
+  });
+  MOBILE_LAYOUT_QUERY.addEventListener("change", () => {
+    if (state.selectedSpawnIndex === null) state.mobileSelectionMinimized = true;
+    updateMobileSelectionPanel();
+    window.requestAnimationFrame(fitMap);
+  });
   els.mapWorkspaceTab.addEventListener("click", () => setSidebarView("map"));
   els.trackingWorkspaceTab.addEventListener("click", () => setSidebarView("tracking"));
   els.settingsWorkspaceTab.addEventListener("click", () => setSidebarView("settings"));
@@ -2225,6 +2283,7 @@ async function init() {
   state.data = prepareData(state.bootstrap);
   els.appVersion.textContent = APP_VERSION;
   updateWorkspaceTabs();
+  updateMobileSelectionPanel();
   renderTracking();
   renderSettings();
   renderMapTabs();
@@ -2234,6 +2293,6 @@ async function init() {
 
 init().catch((error) => {
   els.mapMeta.textContent = "Load failed";
-  els.selectionDetail.textContent = error.message;
+  clearSelectionDetails(error.message);
   console.error(error);
 });

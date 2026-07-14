@@ -2,7 +2,7 @@
 
 Interactive static map for Aniimo world markers.
 
-Version: `v0.3.22`
+Version: `v0.3.23`
 
 ## What Is Included
 
@@ -38,20 +38,8 @@ This folder is ready to be used as its own GitHub repository.
 ## Discord Sync Setup
 
 The map and filters work without a backend. Tracking is disabled until Discord
-sync is configured through Supabase.
-
-1. Create a Supabase project and run
-   `supabase/migrations/20260714_discord_sync.sql` in its SQL editor.
-2. In Supabase Authentication, enable the Discord provider and add the Discord
-   application credentials there. Do not put the Discord client secret in this
-   repository.
-3. In the Discord Developer Portal, add the Supabase callback URL shown in the
-   Discord provider setup, usually `https://<project-ref>.supabase.co/auth/v1/callback`.
-4. Add the deployed map URL, such as `https://minmax.aniimo.io/`, to the
-   Supabase Auth redirect URL allow list.
-5. Fill in `app-config.js` with the Supabase project URL and publishable key.
-   The key is intended for browser use; row-level security in the included
-   migration protects each account's rows.
+sync is configured through Supabase. Follow the click-by-click
+[Discord sync setup guide](./DISCORD_SYNC_SETUP.md) when you are ready.
 
 `app-config.local.js` and `.env` files are ignored so local credentials and
 development settings cannot be committed accidentally.

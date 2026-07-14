@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>MinMax's Map</title>
-    <link rel="stylesheet" href="./styles.css?v=20260714-discord-sync-v022">
+    <link rel="stylesheet" href="./styles.css?v=20260714-mobile-layout-v023">
   </head>
   <body>
     <main class="app-shell">
@@ -83,11 +83,18 @@
           <canvas id="pinCanvas" class="pin-canvas" aria-hidden="true"></canvas>
           <div id="pinTooltip" class="pin-tooltip" hidden></div>
         </div>
+        <section id="mobileSelectionPanel" class="panel mobile-selection-panel is-minimized" aria-live="polite" hidden>
+          <div class="panel-heading mobile-selection-heading">
+            <h2>Selection</h2>
+            <button id="mobileSelectionToggle" class="mobile-selection-toggle" type="button" aria-controls="mobileSelectionDetail" aria-expanded="false" aria-label="Expand selection" title="Expand selection">+</button>
+          </div>
+          <div id="mobileSelectionDetail" class="selection empty">No marker selected</div>
+        </section>
       </section>
     </main>
 
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script defer src="./app-config.js?v=20260714-discord-sync-v022"></script>
-    <script defer src="./app.js?v=20260714-discord-sync-v022"></script>
+    <script defer src="./app-config.js?v=20260714-mobile-layout-v023"></script>
+    <script defer src="./app.js?v=20260714-mobile-layout-v023"></script>
   </body>
 </html>
