@@ -11,8 +11,8 @@
     }
   ],
   "totals": {
-    "aniimo_forms": 207,
-    "aniimo_completion_states": 414,
+    "aniimo_forms": 223,
+    "aniimo_completion_states": 446,
     "aniimo_special_records": 4,
     "lumin_amber_sources": 133,
     "lumin_amber_rewards": 133,
@@ -348,6 +348,35 @@
       }
     },
     {
+      "id": "aniimo:1005305",
+      "category": "aniimo",
+      "kind": "aniimo_form",
+      "form_id": "1005305",
+      "base_id": "10053",
+      "name": "Scorchhowl",
+      "form_key": "umbrabow",
+      "form_label": "Umbrabow",
+      "aniilog_number": "#003",
+      "icon": "assets/icons/checklist_aniimo_1005305__1005305_Fire_Wolf_UI_PetHead_1005305_Sprite_-3362493538592772890.png",
+      "counts_toward_total": true,
+      "completion_states": [
+        {
+          "id": "aniimo:1005305:standard",
+          "label": "Standard"
+        },
+        {
+          "id": "aniimo:1005305:sparkling",
+          "label": "Sparkling"
+        }
+      ],
+      "sort_key": 30005,
+      "source": {
+        "research_id": "1005305",
+        "prototype_id": "1005305",
+        "form_name": "umbrabow"
+      }
+    },
+    {
       "id": "aniimo:1005500",
       "category": "aniimo",
       "kind": "aniimo_form",
@@ -442,7 +471,7 @@
       "base_id": "10012",
       "name": "Stellarys",
       "form_key": "thunderstorm",
-      "form_label": "Thunderstorm",
+      "form_label": "Rainstorm",
       "aniilog_number": "#006",
       "icon": "assets/icons/aniimo_10012_thunderstorm__1001201_Starly_UI_PetHead_1001201_Sprite_-4421346286396387430.png",
       "counts_toward_total": true,
@@ -490,6 +519,35 @@
         "research_id": "1001202",
         "prototype_id": "1001202",
         "form_name": "rainbow"
+      }
+    },
+    {
+      "id": "aniimo:1001203",
+      "category": "aniimo",
+      "kind": "aniimo_form",
+      "form_id": "1001203",
+      "base_id": "10012",
+      "name": "Stellarys",
+      "form_key": "umbrabow",
+      "form_label": "Umbrabow",
+      "aniilog_number": "#006",
+      "icon": "assets/icons/checklist_aniimo_1001203__1001203_Starly_UI_PetHead_1001203_Sprite_-2086061263186537132.png",
+      "counts_toward_total": true,
+      "completion_states": [
+        {
+          "id": "aniimo:1001203:standard",
+          "label": "Standard"
+        },
+        {
+          "id": "aniimo:1001203:sparkling",
+          "label": "Sparkling"
+        }
+      ],
+      "sort_key": 60003,
+      "source": {
+        "research_id": "1001203",
+        "prototype_id": "1001203",
+        "form_name": "umbrabow"
       }
     },
     {
@@ -780,6 +838,35 @@
         "research_id": "1018503",
         "prototype_id": "1018503",
         "form_name": "highland"
+      }
+    },
+    {
+      "id": "aniimo:1018504",
+      "category": "aniimo",
+      "kind": "aniimo_form",
+      "form_id": "1018504",
+      "base_id": "10185",
+      "name": "Cornet",
+      "form_key": "umbrabow",
+      "form_label": "Umbrabow",
+      "aniilog_number": "#009",
+      "icon": "assets/icons/checklist_aniimo_1018504__1018504_Cornet_UI_PetHead_1018504_Sprite_-7392906323198852063.png",
+      "counts_toward_total": true,
+      "completion_states": [
+        {
+          "id": "aniimo:1018504:standard",
+          "label": "Standard"
+        },
+        {
+          "id": "aniimo:1018504:sparkling",
+          "label": "Sparkling"
+        }
+      ],
+      "sort_key": 90004,
+      "source": {
+        "research_id": "1018504",
+        "prototype_id": "1018504",
+        "form_name": "umbrabow"
       }
     },
     {
@@ -1225,7 +1312,7 @@
       "base_id": "10212",
       "name": "Irisal",
       "form_key": "mountainforests",
-      "form_label": "Mountain Woods",
+      "form_label": "Plateau",
       "aniilog_number": "#012",
       "icon": "assets/icons/aniimo_10212_mountainforests__1021206_Iris_UI_PetHead_1021206_Sprite_4804587433838614597.png",
       "counts_toward_total": true,
@@ -1283,7 +1370,7 @@
       "base_id": "10213",
       "name": "Irisalis",
       "form_key": "basic",
-      "form_label": "Basic",
+      "form_label": "Prismana",
       "aniilog_number": "#013",
       "icon": "assets/icons/aniimo_10213_basic__10213_Iris_UI_PetHead_10213_Sprite_-4935230360311873662.png",
       "counts_toward_total": true,
@@ -1341,7 +1428,7 @@
       "base_id": "10041",
       "name": "Skippy",
       "form_key": "flowersea",
-      "form_label": "Flower Sea",
+      "form_label": "Sea of Flowers",
       "aniilog_number": "#014",
       "icon": "assets/icons/aniimo_10041_flowersea__1004101_Skippy_UI_PetHead_1004101_Sprite_805302099073430333.png",
       "counts_toward_total": true,
@@ -1428,7 +1515,7 @@
       "base_id": "10042",
       "name": "Pranky",
       "form_key": "flowersea",
-      "form_label": "Flower Sea",
+      "form_label": "Sea of Flowers",
       "aniilog_number": "#015",
       "icon": "assets/icons/aniimo_10042_flowersea__1004201_Pranky_UI_PetHead_1004201_Sprite_7608209486266797931.png",
       "counts_toward_total": true,
@@ -1515,7 +1602,7 @@
       "base_id": "10043",
       "name": "Glacy",
       "form_key": "flowersea",
-      "form_label": "Flower Sea",
+      "form_label": "Sea of Flowers",
       "aniilog_number": "#016",
       "icon": "assets/icons/aniimo_10043_flowersea__1004301_Glacy_UI_PetHead_1004301_Sprite_-1015387602572943259.png",
       "counts_toward_total": true,
@@ -1660,7 +1747,7 @@
       "base_id": "10261",
       "name": "Nimbi",
       "form_key": "thunderstorm",
-      "form_label": "Thunderstorm",
+      "form_label": "Rainstorm",
       "aniilog_number": "#018",
       "icon": "assets/icons/aniimo_10261_thunderstorm__1026101_Cloud_Sheep_UI_PetHead_1026101_Sprite_-7953688819309249289.png",
       "counts_toward_total": true,
@@ -1689,7 +1776,7 @@
       "base_id": "10261",
       "name": "Nimbi",
       "form_key": "cloud",
-      "form_label": "Cloud",
+      "form_label": "Cloudmist",
       "aniilog_number": "#018",
       "icon": "assets/icons/aniimo_10261_cloud__1026102_Nimbi_UI_PetHead_1026102_Sprite_-5523512344760881415.png",
       "counts_toward_total": true,
@@ -1776,7 +1863,7 @@
       "base_id": "10262",
       "name": "Turbo",
       "form_key": "thunderstorm",
-      "form_label": "Thunderstorm",
+      "form_label": "Rainstorm",
       "aniilog_number": "#019",
       "icon": "assets/icons/aniimo_10262_thunderstorm__1026201_Cloud_Sheep_UI_PetHead_1026201_Sprite_5916375965653502116.png",
       "counts_toward_total": true,
@@ -1805,7 +1892,7 @@
       "base_id": "10262",
       "name": "Turbo",
       "form_key": "cloud",
-      "form_label": "Cloud",
+      "form_label": "Cloudmist",
       "aniilog_number": "#019",
       "icon": "assets/icons/checklist_aniimo_1026202__1026202_Turbo_UI_PetHead_1026202_Sprite_8188799338542053241.png",
       "counts_toward_total": true,
@@ -1885,6 +1972,35 @@
       }
     },
     {
+      "id": "aniimo:1026206",
+      "category": "aniimo",
+      "kind": "aniimo_form",
+      "form_id": "1026206",
+      "base_id": "10262",
+      "name": "Turbo",
+      "form_key": "umbrabow",
+      "form_label": "Umbrabow",
+      "aniilog_number": "#019",
+      "icon": "assets/icons/checklist_aniimo_1026206__1026206_Cloud_Sheep_UI_PetHead_1026206_Sprite_106655290571902255.png",
+      "counts_toward_total": true,
+      "completion_states": [
+        {
+          "id": "aniimo:1026206:standard",
+          "label": "Standard"
+        },
+        {
+          "id": "aniimo:1026206:sparkling",
+          "label": "Sparkling"
+        }
+      ],
+      "sort_key": 190006,
+      "source": {
+        "research_id": "1026206",
+        "prototype_id": "1026206",
+        "form_name": "umbrabow"
+      }
+    },
+    {
       "id": "aniimo:1026300",
       "category": "aniimo",
       "kind": "aniimo_form",
@@ -1950,7 +2066,7 @@
       "base_id": "10201",
       "name": "Hummin",
       "form_key": "highland",
-      "form_label": "Highland",
+      "form_label": "Mountain",
       "aniilog_number": "#021",
       "icon": "assets/icons/aniimo_10201_highland__1020101_Hummin_UI_PetHead_1020101_Sprite_-7588975606035889511.png",
       "counts_toward_total": true,
@@ -2008,7 +2124,7 @@
       "base_id": "10203",
       "name": "Witchin",
       "form_key": "highland",
-      "form_label": "Highland",
+      "form_label": "Mountain",
       "aniilog_number": "#022",
       "icon": "assets/icons/aniimo_10203_highland__1020301_Witchin_UI_PetHead_1020301_Sprite_-2211444819693608740.png",
       "counts_toward_total": true,
@@ -2059,6 +2175,35 @@
       }
     },
     {
+      "id": "aniimo:1020304",
+      "category": "aniimo",
+      "kind": "aniimo_form",
+      "form_id": "1020304",
+      "base_id": "10203",
+      "name": "Witchin",
+      "form_key": "umbrabow",
+      "form_label": "Umbrabow",
+      "aniilog_number": "#022",
+      "icon": "assets/icons/checklist_aniimo_1020304__1020304_Sing_Grass_UI_PetHead_1020304_Sprite_4101386367040915125.png",
+      "counts_toward_total": true,
+      "completion_states": [
+        {
+          "id": "aniimo:1020304:standard",
+          "label": "Standard"
+        },
+        {
+          "id": "aniimo:1020304:sparkling",
+          "label": "Sparkling"
+        }
+      ],
+      "sort_key": 220004,
+      "source": {
+        "research_id": "1020304",
+        "prototype_id": "1020304",
+        "form_name": "umbrabow"
+      }
+    },
+    {
       "id": "aniimo:1020700",
       "category": "aniimo",
       "kind": "aniimo_form",
@@ -2095,7 +2240,7 @@
       "base_id": "10207",
       "name": "Tuckin",
       "form_key": "highland",
-      "form_label": "Highland",
+      "form_label": "Mountain",
       "aniilog_number": "#023",
       "icon": "assets/icons/checklist_aniimo_1020701__1020701_Tuckin_UI_PetHead_1020701_Sprite_723525171950502736.png",
       "counts_toward_total": true,
@@ -2153,7 +2298,7 @@
       "base_id": "10161",
       "name": "Budclaw",
       "form_key": "tidalflat",
-      "form_label": "Tidal Flat",
+      "form_label": "Mudflat",
       "aniilog_number": "#024",
       "icon": "assets/icons/aniimo_10161_tidalflat__1016101_Budclaw_UI_PetHead_1016101_Sprite_2922846516680399742.png",
       "counts_toward_total": true,
@@ -2269,7 +2414,7 @@
       "base_id": "10162",
       "name": "Shrubclaw",
       "form_key": "tidalflat",
-      "form_label": "Tidal Flat",
+      "form_label": "Mudflat",
       "aniilog_number": "#025",
       "icon": "assets/icons/aniimo_10162_tidalflat__1016201_Crab_UI_PetHead_1016201_Sprite_-9024258956515195010.png",
       "counts_toward_total": true,
@@ -2472,7 +2617,7 @@
       "base_id": "10331",
       "name": "Sparki",
       "form_key": "flowersea",
-      "form_label": "Flower Sea",
+      "form_label": "Sea of Flowers",
       "aniilog_number": "#027",
       "icon": "assets/icons/aniimo_10331_flowersea__1033103_Flame_UI_PetHead_1033103_Sprite_1607374068140598116.png",
       "counts_toward_total": true,
@@ -2588,7 +2733,7 @@
       "base_id": "10333",
       "name": "Flamerion",
       "form_key": "flowersea",
-      "form_label": "Flower Sea",
+      "form_label": "Sea of Flowers",
       "aniilog_number": "#028",
       "icon": "assets/icons/checklist_aniimo_1033303__1033303_Flame_UI_PetHead_1033303_Sprite_7404646493486530515.png",
       "counts_toward_total": true,
@@ -2646,7 +2791,7 @@
       "base_id": "10231",
       "name": "Flutternym",
       "form_key": "flowersea",
-      "form_label": "Flower Sea",
+      "form_label": "Sea of Flowers",
       "aniilog_number": "#029",
       "icon": "assets/icons/aniimo_10231_flowersea__1023101_Dream_Butterfly_UI_PetHead_1023101_Sprite_-5606668135249942017.png",
       "counts_toward_total": true,
@@ -2675,7 +2820,7 @@
       "base_id": "10231",
       "name": "Flutternym",
       "form_key": "night",
-      "form_label": "Night",
+      "form_label": "Nighttime",
       "aniilog_number": "#029",
       "icon": "assets/icons/aniimo_10231_night__1023102_Flutternym_UI_PetHead_1023102_Sprite_4330028162014405305.png",
       "counts_toward_total": true,
@@ -2704,7 +2849,7 @@
       "base_id": "10231",
       "name": "Flutternym",
       "form_key": "highland",
-      "form_label": "Highland",
+      "form_label": "Mountain Woods",
       "aniilog_number": "#029",
       "icon": "assets/icons/aniimo_10231_highland__1023103_Dream_Butterfly_UI_PetHead_1023103_Sprite_1679127613689767281.png",
       "counts_toward_total": true,
@@ -2762,7 +2907,7 @@
       "base_id": "10232",
       "name": "Gracewing",
       "form_key": "flowersea",
-      "form_label": "Flower Sea",
+      "form_label": "Sea of Flowers",
       "aniilog_number": "#030",
       "icon": "assets/icons/checklist_aniimo_1023201__1023201_Dream_Butterfly_UI_PetHead_1023201_Sprite_8910771996944442833.png",
       "counts_toward_total": true,
@@ -2791,7 +2936,7 @@
       "base_id": "10232",
       "name": "Gracewing",
       "form_key": "night",
-      "form_label": "Night",
+      "form_label": "Nighttime",
       "aniilog_number": "#030",
       "icon": "assets/icons/aniimo_10232_night__1023202_Gracewing_UI_PetHead_1023202_Sprite_-17855232041525531.png",
       "counts_toward_total": true,
@@ -2820,7 +2965,7 @@
       "base_id": "10232",
       "name": "Gracewing",
       "form_key": "highland",
-      "form_label": "Highland",
+      "form_label": "Mountain Woods",
       "aniilog_number": "#030",
       "icon": "assets/icons/aniimo_10232_highland__1023203_Dream_Butterfly_UI_PetHead_1023203_Sprite_8973938101830261905.png",
       "counts_toward_total": true,
@@ -2958,6 +3103,35 @@
       }
     },
     {
+      "id": "aniimo:1032103",
+      "category": "aniimo",
+      "kind": "aniimo_form",
+      "form_id": "1032103",
+      "base_id": "10321",
+      "name": "Budsquire",
+      "form_key": "towerwood",
+      "form_label": "Towerwood",
+      "aniilog_number": "#034",
+      "icon": "assets/icons/aniimo_10321_towerwood__1032103_Budsquire_UI_PetHead_1032103_Sprite_-2406545340559771944.png",
+      "counts_toward_total": true,
+      "completion_states": [
+        {
+          "id": "aniimo:1032103:standard",
+          "label": "Standard"
+        },
+        {
+          "id": "aniimo:1032103:sparkling",
+          "label": "Sparkling"
+        }
+      ],
+      "sort_key": 340003,
+      "source": {
+        "research_id": "1032103",
+        "prototype_id": "1032103",
+        "form_name": "towerwood"
+      }
+    },
+    {
       "id": "aniimo:1032300",
       "category": "aniimo",
       "kind": "aniimo_form",
@@ -2994,7 +3168,7 @@
       "base_id": "10323",
       "name": "Thornblade",
       "form_key": "thunderstorm",
-      "form_label": "Thunderstorm",
+      "form_label": "Rainstorm",
       "aniilog_number": "#035",
       "icon": "assets/icons/aniimo_10323_thunderstorm__1032301_Rose_UI_PetHead_1032301_Sprite_7405022487565373018.png",
       "counts_toward_total": true,
@@ -3042,6 +3216,64 @@
         "research_id": "1032302",
         "prototype_id": "1032302",
         "form_name": "rainbow"
+      }
+    },
+    {
+      "id": "aniimo:1032303",
+      "category": "aniimo",
+      "kind": "aniimo_form",
+      "form_id": "1032303",
+      "base_id": "10323",
+      "name": "Thornblade",
+      "form_key": "towerwood",
+      "form_label": "Towerwood",
+      "aniilog_number": "#035",
+      "icon": "assets/icons/aniimo_10323_towerwood__1032303_Rose_UI_PetHead_1032303_Sprite_7065489890461782533.png",
+      "counts_toward_total": true,
+      "completion_states": [
+        {
+          "id": "aniimo:1032303:standard",
+          "label": "Standard"
+        },
+        {
+          "id": "aniimo:1032303:sparkling",
+          "label": "Sparkling"
+        }
+      ],
+      "sort_key": 350003,
+      "source": {
+        "research_id": "1032303",
+        "prototype_id": "1032303",
+        "form_name": "towerwood"
+      }
+    },
+    {
+      "id": "aniimo:1032304",
+      "category": "aniimo",
+      "kind": "aniimo_form",
+      "form_id": "1032304",
+      "base_id": "10323",
+      "name": "Thornblade",
+      "form_key": "umbrabow",
+      "form_label": "Umbrabow",
+      "aniilog_number": "#035",
+      "icon": "assets/icons/checklist_aniimo_1032304__1032304_Rose_UI_PetHead_1032304_Sprite_-2088649377083019962.png",
+      "counts_toward_total": true,
+      "completion_states": [
+        {
+          "id": "aniimo:1032304:standard",
+          "label": "Standard"
+        },
+        {
+          "id": "aniimo:1032304:sparkling",
+          "label": "Sparkling"
+        }
+      ],
+      "sort_key": 350004,
+      "source": {
+        "research_id": "1032304",
+        "prototype_id": "1032304",
+        "form_name": "umbrabow"
       }
     },
     {
@@ -3168,7 +3400,7 @@
       "base_id": "10471",
       "name": "Pomegg",
       "form_key": "flowersea",
-      "form_label": "Flower Sea",
+      "form_label": "Sea of Flowers",
       "aniilog_number": "#037",
       "icon": "assets/icons/aniimo_10471_flowersea__1047103_Cheeregg_UI_PetHead_1047103_Sprite_535849308422050206.png",
       "counts_toward_total": true,
@@ -3313,7 +3545,7 @@
       "base_id": "10475",
       "name": "Pomawk",
       "form_key": "flowersea",
-      "form_label": "Flower Sea",
+      "form_label": "Sea of Flowers",
       "aniilog_number": "#039",
       "icon": "assets/icons/checklist_aniimo_1047503__1047503_Cheeregg_UI_PetHead_1047503_Sprite_8381739877225548708.png",
       "counts_toward_total": true,
@@ -3458,7 +3690,7 @@
       "base_id": "10031",
       "name": "Wisptis",
       "form_key": "fire",
-      "form_label": "Fire",
+      "form_label": "Highland",
       "aniilog_number": "#042",
       "icon": "assets/icons/aniimo_10031_fire__1003103_Mantis_UI_PetHead_1003103_Sprite_-428916344104025931.png",
       "counts_toward_total": true,
@@ -3574,7 +3806,7 @@
       "base_id": "10032",
       "name": "Ignitis",
       "form_key": "fire",
-      "form_label": "Fire",
+      "form_label": "Highland",
       "aniilog_number": "#043",
       "icon": "assets/icons/aniimo_10032_fire__1003203_Ignitis_UI_PetHead_1003203_Sprite_-2793742047811207459.png",
       "counts_toward_total": true,
@@ -3593,6 +3825,35 @@
         "research_id": "1003203",
         "prototype_id": "1003203",
         "form_name": "fire"
+      }
+    },
+    {
+      "id": "aniimo:1003204",
+      "category": "aniimo",
+      "kind": "aniimo_form",
+      "form_id": "1003204",
+      "base_id": "10032",
+      "name": "Ignitis",
+      "form_key": "umbrabow",
+      "form_label": "Umbrabow",
+      "aniilog_number": "#043",
+      "icon": "assets/icons/checklist_aniimo_1003204__1003204_Ignitis_UI_PetHead_1003204_Sprite_3367564248463109422.png",
+      "counts_toward_total": true,
+      "completion_states": [
+        {
+          "id": "aniimo:1003204:standard",
+          "label": "Standard"
+        },
+        {
+          "id": "aniimo:1003204:sparkling",
+          "label": "Sparkling"
+        }
+      ],
+      "sort_key": 430004,
+      "source": {
+        "research_id": "1003204",
+        "prototype_id": "1003204",
+        "form_name": "umbrabow"
       }
     },
     {
@@ -3690,7 +3951,7 @@
       "base_id": "10131",
       "name": "Bonesky",
       "form_key": "night",
-      "form_label": "Night",
+      "form_label": "Nighttime",
       "aniilog_number": "#045",
       "icon": "assets/icons/aniimo_10131_night__1013102_Bonesky_UI_PetHead_1013102_Sprite_-8572473993809725334.png",
       "counts_toward_total": true,
@@ -3748,7 +4009,7 @@
       "base_id": "10132",
       "name": "Fenrier",
       "form_key": "night",
-      "form_label": "Night",
+      "form_label": "Nighttime",
       "aniilog_number": "#046",
       "icon": "assets/icons/checklist_aniimo_1013202__1013202_Fenrier_UI_PetHead_1013202_Sprite_7255083528453892730.png",
       "counts_toward_total": true,
@@ -3835,7 +4096,7 @@
       "base_id": "10133",
       "name": "Glynsera",
       "form_key": "night",
-      "form_label": "Night",
+      "form_label": "Nighttime",
       "aniilog_number": "#047",
       "icon": "assets/icons/aniimo_10133_night__1013302_Glynsera_UI_PetHead_1013302_Sprite_2538318504512479784.png",
       "counts_toward_total": true,
@@ -3893,7 +4154,7 @@
       "base_id": "10221",
       "name": "Bolty",
       "form_key": "mountain",
-      "form_label": "Mountain",
+      "form_label": "Mountain Woods",
       "aniilog_number": "#048",
       "icon": "assets/icons/aniimo_10221_mountain__1022102_Bolty_UI_PetHead_1022102_Sprite_5952914899332031736.png",
       "counts_toward_total": true,
@@ -3980,7 +4241,7 @@
       "base_id": "10222",
       "name": "Blazen",
       "form_key": "mountain",
-      "form_label": "Mountain",
+      "form_label": "Mountain Woods",
       "aniilog_number": "#049",
       "icon": "assets/icons/checklist_aniimo_1022202__1022202_Blazen_UI_PetHead_1022202_Sprite_6008219599216938601.png",
       "counts_toward_total": true,
@@ -3999,6 +4260,35 @@
         "research_id": "1022202",
         "prototype_id": "1022202",
         "form_name": "mountain"
+      }
+    },
+    {
+      "id": "aniimo:1022203",
+      "category": "aniimo",
+      "kind": "aniimo_form",
+      "form_id": "1022203",
+      "base_id": "10222",
+      "name": "Blazen",
+      "form_key": "umbrabow",
+      "form_label": "Umbrabow",
+      "aniilog_number": "#049",
+      "icon": "assets/icons/checklist_aniimo_1022203__1022203_Blazen_UI_PetHead_1022203_Sprite_-6154916010102775969.png",
+      "counts_toward_total": true,
+      "completion_states": [
+        {
+          "id": "aniimo:1022203:standard",
+          "label": "Standard"
+        },
+        {
+          "id": "aniimo:1022203:sparkling",
+          "label": "Sparkling"
+        }
+      ],
+      "sort_key": 490003,
+      "source": {
+        "research_id": "1022203",
+        "prototype_id": "1022203",
+        "form_name": "umbrabow"
       }
     },
     {
@@ -4038,7 +4328,7 @@
       "base_id": "10171",
       "name": "Susuta",
       "form_key": "night",
-      "form_label": "Night",
+      "form_label": "Nighttime",
       "aniilog_number": "#050",
       "icon": "assets/icons/aniimo_10171_night__1017101_Sphere_001_UI_PetHead_1017101_Sprite_7711848472469406232.png",
       "counts_toward_total": true,
@@ -4096,7 +4386,7 @@
       "base_id": "10172",
       "name": "Popota",
       "form_key": "night",
-      "form_label": "Night",
+      "form_label": "Nighttime",
       "aniilog_number": "#051",
       "icon": "assets/icons/aniimo_10172_night__1017201_Popota_UI_PetHead_1017201_Sprite_990040523829145558.png",
       "counts_toward_total": true,
@@ -4154,7 +4444,7 @@
       "base_id": "10173",
       "name": "Piopiota",
       "form_key": "night",
-      "form_label": "Night",
+      "form_label": "Nighttime",
       "aniilog_number": "#052",
       "icon": "assets/icons/aniimo_10173_night__1017301_Piopiota_UI_PetHead_1017301_Sprite_-8104313150436063623.png",
       "counts_toward_total": true,
@@ -4212,7 +4502,7 @@
       "base_id": "10174",
       "name": "Panpanta",
       "form_key": "night",
-      "form_label": "Night",
+      "form_label": "Nighttime",
       "aniilog_number": "#053",
       "icon": "assets/icons/checklist_aniimo_1017401__1017401_Panpanta_UI_PetHead_1017401_Sprite_-6798620718470000723.png",
       "counts_toward_total": true,
@@ -4405,6 +4695,35 @@
         "research_id": "1019402",
         "prototype_id": "1019402",
         "form_name": "rainbow"
+      }
+    },
+    {
+      "id": "aniimo:1019405",
+      "category": "aniimo",
+      "kind": "aniimo_form",
+      "form_id": "1019405",
+      "base_id": "10194",
+      "name": "Sherro",
+      "form_key": "umbrabow",
+      "form_label": "Umbrabow",
+      "aniilog_number": "#056",
+      "icon": "assets/icons/checklist_aniimo_1019405__1019405_Shellstar_UI_PetHead_1019405_Sprite_2119413085281354177.png",
+      "counts_toward_total": true,
+      "completion_states": [
+        {
+          "id": "aniimo:1019405:standard",
+          "label": "Standard"
+        },
+        {
+          "id": "aniimo:1019405:sparkling",
+          "label": "Sparkling"
+        }
+      ],
+      "sort_key": 560005,
+      "source": {
+        "research_id": "1019405",
+        "prototype_id": "1019405",
+        "form_name": "umbrabow"
       }
     },
     {
@@ -4872,6 +5191,35 @@
       }
     },
     {
+      "id": "aniimo:1002604",
+      "category": "aniimo",
+      "kind": "aniimo_form",
+      "form_id": "1002604",
+      "base_id": "10026",
+      "name": "Pawney",
+      "form_key": "umbrabow",
+      "form_label": "Umbrabow",
+      "aniilog_number": "#063",
+      "icon": "assets/icons/checklist_aniimo_1002604__1002604_Helm_UI_PetHead_1002604_Sprite_5502630418351393400.png",
+      "counts_toward_total": true,
+      "completion_states": [
+        {
+          "id": "aniimo:1002604:standard",
+          "label": "Standard"
+        },
+        {
+          "id": "aniimo:1002604:sparkling",
+          "label": "Sparkling"
+        }
+      ],
+      "sort_key": 630004,
+      "source": {
+        "research_id": "1002604",
+        "prototype_id": "1002604",
+        "form_name": "umbrabow"
+      }
+    },
+    {
       "id": "aniimo:1002700",
       "category": "aniimo",
       "kind": "aniimo_form",
@@ -4937,7 +5285,7 @@
       "base_id": "10027",
       "name": "Rookey",
       "form_key": "mountain",
-      "form_label": "Mountain",
+      "form_label": "Mountain Woods",
       "aniilog_number": "#064",
       "icon": "assets/icons/aniimo_10027_mountain__1002702_Rookey_UI_PetHead_1002702_Sprite_-1382989547611440647.png",
       "counts_toward_total": true,
@@ -5365,6 +5713,35 @@
       }
     },
     {
+      "id": "aniimo:1028303",
+      "category": "aniimo",
+      "kind": "aniimo_form",
+      "form_id": "1028303",
+      "base_id": "10283",
+      "name": "Magmarex",
+      "form_key": "umbrabow",
+      "form_label": "Umbrabow",
+      "aniilog_number": "#073",
+      "icon": "assets/icons/checklist_aniimo_1028303__1028303_Godzilla_UI_PetHead_1028303_Sprite_6693081307555853560.png",
+      "counts_toward_total": true,
+      "completion_states": [
+        {
+          "id": "aniimo:1028303:standard",
+          "label": "Standard"
+        },
+        {
+          "id": "aniimo:1028303:sparkling",
+          "label": "Sparkling"
+        }
+      ],
+      "sort_key": 730003,
+      "source": {
+        "research_id": "1028303",
+        "prototype_id": "1028303",
+        "form_name": "umbrabow"
+      }
+    },
+    {
       "id": "aniimo:1028400",
       "category": "aniimo",
       "kind": "aniimo_form",
@@ -5575,7 +5952,7 @@
       "base_id": "10143",
       "name": "Luminelle",
       "form_key": "thunderstorm",
-      "form_label": "Thunderstorm",
+      "form_label": "Rainstorm",
       "aniilog_number": "#080",
       "icon": "assets/icons/aniimo_10143_thunderstorm__1014301_Jellyfish_UI_PetHead_1014301_Sprite_-5434591383857443370.png",
       "counts_toward_total": true,
@@ -5623,6 +6000,35 @@
         "research_id": "1014302",
         "prototype_id": "1014302",
         "form_name": "rainbow"
+      }
+    },
+    {
+      "id": "aniimo:1014303",
+      "category": "aniimo",
+      "kind": "aniimo_form",
+      "form_id": "1014303",
+      "base_id": "10143",
+      "name": "Luminelle",
+      "form_key": "umbrabow",
+      "form_label": "Umbrabow",
+      "aniilog_number": "#080",
+      "icon": "assets/icons/checklist_aniimo_1014303__1014303_Jellyfish_UI_PetHead_1014303_Sprite_6927242685607794406.png",
+      "counts_toward_total": true,
+      "completion_states": [
+        {
+          "id": "aniimo:1014303:standard",
+          "label": "Standard"
+        },
+        {
+          "id": "aniimo:1014303:sparkling",
+          "label": "Sparkling"
+        }
+      ],
+      "sort_key": 800003,
+      "source": {
+        "research_id": "1014303",
+        "prototype_id": "1014303",
+        "form_name": "umbrabow"
       }
     },
     {
@@ -5742,6 +6148,35 @@
       }
     },
     {
+      "id": "aniimo:1038103",
+      "category": "aniimo",
+      "kind": "aniimo_form",
+      "form_id": "1038103",
+      "base_id": "10381",
+      "name": "Reefish",
+      "form_key": "rainstorm",
+      "form_label": "Rainstorm",
+      "aniilog_number": "#084",
+      "icon": "assets/icons/aniimo_10381_rainstorm__1038103_Coralfish_UI_PetHead_1038103_Sprite_-906170106629902536.png",
+      "counts_toward_total": true,
+      "completion_states": [
+        {
+          "id": "aniimo:1038103:standard",
+          "label": "Standard"
+        },
+        {
+          "id": "aniimo:1038103:sparkling",
+          "label": "Sparkling"
+        }
+      ],
+      "sort_key": 840003,
+      "source": {
+        "research_id": "1038103",
+        "prototype_id": "1038103",
+        "form_name": "rainstorm"
+      }
+    },
+    {
       "id": "aniimo:1038300",
       "category": "aniimo",
       "kind": "aniimo_form",
@@ -5768,6 +6203,35 @@
         "research_id": "1038300",
         "prototype_id": "1038300",
         "form_name": "basic"
+      }
+    },
+    {
+      "id": "aniimo:1038303",
+      "category": "aniimo",
+      "kind": "aniimo_form",
+      "form_id": "1038303",
+      "base_id": "10383",
+      "name": "Coraliz",
+      "form_key": "rainstorm",
+      "form_label": "Rainstorm",
+      "aniilog_number": "#085",
+      "icon": "assets/icons/aniimo_10383_rainstorm__1038303_Coralfish_UI_PetHead_1038303_Sprite_4992380050534680539.png",
+      "counts_toward_total": true,
+      "completion_states": [
+        {
+          "id": "aniimo:1038303:standard",
+          "label": "Standard"
+        },
+        {
+          "id": "aniimo:1038303:sparkling",
+          "label": "Sparkling"
+        }
+      ],
+      "sort_key": 850003,
+      "source": {
+        "research_id": "1038303",
+        "prototype_id": "1038303",
+        "form_name": "rainstorm"
       }
     },
     {
@@ -8879,11 +9343,11 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "overworld",
-      "source_label": "Overworld pickup: Rosetower Woods / Snowfield",
+      "source_label": "Overworld pickup: Rosetower Woods / Towerwood",
       "map_label": "Idyll",
       "map_id": "country-of-time",
       "scene_id": "3000",
-      "area_name": "Rosetower Woods / Snowfield",
+      "area_name": "Rosetower Woods / Towerwood",
       "coordinate_key": "MAPCOORDINATE_0060_0975",
       "x": 60.01,
       "y": 975.22,
@@ -8900,7 +9364,7 @@
       "sort_key": [
         0,
         "Idyll",
-        "Rosetower Woods / Snowfield",
+        "Rosetower Woods / Towerwood",
         "MAPCOORDINATE_0060_0975"
       ],
       "source": {
@@ -8908,7 +9372,7 @@
         "marker_type": "lumin_amber",
         "public_source_key": "",
         "display_name": "Lumin Amber",
-        "area_name": "Rosetower Woods / Snowfield",
+        "area_name": "Rosetower Woods / Towerwood",
         "large_area_name": "Rosetower Woods",
         "level_area_name": "Rosetower Woods",
         "static_id": "83997527",
@@ -8918,7 +9382,7 @@
         "source_item_id": "1101",
         "mark_config_id": "10505",
         "id_in_type": "11042",
-        "source_name": "Lumin Amber - Rosetower Woods / Snowfield (MAPCOORDINATE_0060_0975)",
+        "source_name": "Lumin Amber - Rosetower Woods / Towerwood (MAPCOORDINATE_0060_0975)",
         "name_origin": "shared_game_title_with_generated_location_label"
       }
     },
@@ -8928,11 +9392,11 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "overworld",
-      "source_label": "Overworld pickup: Rosetower Woods / Snowfield",
+      "source_label": "Overworld pickup: Rosetower Woods / Towerwood",
       "map_label": "Idyll",
       "map_id": "country-of-time",
       "scene_id": "3000",
-      "area_name": "Rosetower Woods / Snowfield",
+      "area_name": "Rosetower Woods / Towerwood",
       "coordinate_key": "MAPCOORDINATE_0138_0979",
       "x": 137.98,
       "y": 979.48,
@@ -8949,7 +9413,7 @@
       "sort_key": [
         0,
         "Idyll",
-        "Rosetower Woods / Snowfield",
+        "Rosetower Woods / Towerwood",
         "MAPCOORDINATE_0138_0979"
       ],
       "source": {
@@ -8957,7 +9421,7 @@
         "marker_type": "lumin_amber",
         "public_source_key": "",
         "display_name": "Lumin Amber",
-        "area_name": "Rosetower Woods / Snowfield",
+        "area_name": "Rosetower Woods / Towerwood",
         "large_area_name": "Rosetower Woods",
         "level_area_name": "Rosetower Woods",
         "static_id": "83134521",
@@ -8967,7 +9431,7 @@
         "source_item_id": "1101",
         "mark_config_id": "10505",
         "id_in_type": "11042",
-        "source_name": "Lumin Amber - Rosetower Woods / Snowfield (MAPCOORDINATE_0138_0979)",
+        "source_name": "Lumin Amber - Rosetower Woods / Towerwood (MAPCOORDINATE_0138_0979)",
         "name_origin": "shared_game_title_with_generated_location_label"
       }
     },
@@ -8977,11 +9441,11 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "overworld",
-      "source_label": "Overworld pickup: Rosetower Woods / Snowfield",
+      "source_label": "Overworld pickup: Rosetower Woods / Towerwood",
       "map_label": "Idyll",
       "map_id": "country-of-time",
       "scene_id": "3000",
-      "area_name": "Rosetower Woods / Snowfield",
+      "area_name": "Rosetower Woods / Towerwood",
       "coordinate_key": "MAPCOORDINATE_0140_1022",
       "x": 139.66,
       "y": 1021.85,
@@ -8998,7 +9462,7 @@
       "sort_key": [
         0,
         "Idyll",
-        "Rosetower Woods / Snowfield",
+        "Rosetower Woods / Towerwood",
         "MAPCOORDINATE_0140_1022"
       ],
       "source": {
@@ -9006,7 +9470,7 @@
         "marker_type": "lumin_amber",
         "public_source_key": "",
         "display_name": "Lumin Amber",
-        "area_name": "Rosetower Woods / Snowfield",
+        "area_name": "Rosetower Woods / Towerwood",
         "large_area_name": "Rosetower Woods",
         "level_area_name": "Rosetower Woods",
         "static_id": "85168818",
@@ -9016,7 +9480,7 @@
         "source_item_id": "1101",
         "mark_config_id": "10505",
         "id_in_type": "11042",
-        "source_name": "Lumin Amber - Rosetower Woods / Snowfield (MAPCOORDINATE_0140_1022)",
+        "source_name": "Lumin Amber - Rosetower Woods / Towerwood (MAPCOORDINATE_0140_1022)",
         "name_origin": "shared_game_title_with_generated_location_label"
       }
     },
@@ -9026,11 +9490,11 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "overworld",
-      "source_label": "Overworld pickup: Rosetower Woods / Snowfield",
+      "source_label": "Overworld pickup: Rosetower Woods / Towerwood",
       "map_label": "Idyll",
       "map_id": "country-of-time",
       "scene_id": "3000",
-      "area_name": "Rosetower Woods / Snowfield",
+      "area_name": "Rosetower Woods / Towerwood",
       "coordinate_key": "MAPCOORDINATE_0167_0962",
       "x": 166.68,
       "y": 961.52,
@@ -9047,7 +9511,7 @@
       "sort_key": [
         0,
         "Idyll",
-        "Rosetower Woods / Snowfield",
+        "Rosetower Woods / Towerwood",
         "MAPCOORDINATE_0167_0962"
       ],
       "source": {
@@ -9055,7 +9519,7 @@
         "marker_type": "lumin_amber",
         "public_source_key": "",
         "display_name": "Lumin Amber",
-        "area_name": "Rosetower Woods / Snowfield",
+        "area_name": "Rosetower Woods / Towerwood",
         "large_area_name": "Rosetower Woods",
         "level_area_name": "Rosetower Woods",
         "static_id": "89098279",
@@ -9065,7 +9529,7 @@
         "source_item_id": "1101",
         "mark_config_id": "10505",
         "id_in_type": "11042",
-        "source_name": "Lumin Amber - Rosetower Woods / Snowfield (MAPCOORDINATE_0167_0962)",
+        "source_name": "Lumin Amber - Rosetower Woods / Towerwood (MAPCOORDINATE_0167_0962)",
         "name_origin": "shared_game_title_with_generated_location_label"
       }
     },
@@ -9075,11 +9539,11 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "overworld",
-      "source_label": "Overworld pickup: Rosetower Woods / Snowfield",
+      "source_label": "Overworld pickup: Rosetower Woods / Towerwood",
       "map_label": "Idyll",
       "map_id": "country-of-time",
       "scene_id": "3000",
-      "area_name": "Rosetower Woods / Snowfield",
+      "area_name": "Rosetower Woods / Towerwood",
       "coordinate_key": "MAPCOORDINATE_0185_0744",
       "x": 185.37,
       "y": 744.25,
@@ -9096,7 +9560,7 @@
       "sort_key": [
         0,
         "Idyll",
-        "Rosetower Woods / Snowfield",
+        "Rosetower Woods / Towerwood",
         "MAPCOORDINATE_0185_0744"
       ],
       "source": {
@@ -9104,7 +9568,7 @@
         "marker_type": "lumin_amber",
         "public_source_key": "",
         "display_name": "Lumin Amber",
-        "area_name": "Rosetower Woods / Snowfield",
+        "area_name": "Rosetower Woods / Towerwood",
         "large_area_name": "Rosetower Woods",
         "level_area_name": "Rosetower Woods",
         "static_id": "90803860",
@@ -9114,7 +9578,7 @@
         "source_item_id": "1101",
         "mark_config_id": "10505",
         "id_in_type": "11042",
-        "source_name": "Lumin Amber - Rosetower Woods / Snowfield (MAPCOORDINATE_0185_0744)",
+        "source_name": "Lumin Amber - Rosetower Woods / Towerwood (MAPCOORDINATE_0185_0744)",
         "name_origin": "shared_game_title_with_generated_location_label"
       }
     },
@@ -9124,11 +9588,11 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "overworld",
-      "source_label": "Overworld pickup: Rosetower Woods / Snowfield",
+      "source_label": "Overworld pickup: Rosetower Woods / Towerwood",
       "map_label": "Idyll",
       "map_id": "country-of-time",
       "scene_id": "3000",
-      "area_name": "Rosetower Woods / Snowfield",
+      "area_name": "Rosetower Woods / Towerwood",
       "coordinate_key": "MAPCOORDINATE_0228_0739",
       "x": 227.53,
       "y": 738.64,
@@ -9145,7 +9609,7 @@
       "sort_key": [
         0,
         "Idyll",
-        "Rosetower Woods / Snowfield",
+        "Rosetower Woods / Towerwood",
         "MAPCOORDINATE_0228_0739"
       ],
       "source": {
@@ -9153,7 +9617,7 @@
         "marker_type": "lumin_amber",
         "public_source_key": "",
         "display_name": "Lumin Amber",
-        "area_name": "Rosetower Woods / Snowfield",
+        "area_name": "Rosetower Woods / Towerwood",
         "large_area_name": "Rosetower Woods",
         "level_area_name": "Rosetower Woods",
         "static_id": "83744510",
@@ -9163,7 +9627,7 @@
         "source_item_id": "1101",
         "mark_config_id": "10505",
         "id_in_type": "11042",
-        "source_name": "Lumin Amber - Rosetower Woods / Snowfield (MAPCOORDINATE_0228_0739)",
+        "source_name": "Lumin Amber - Rosetower Woods / Towerwood (MAPCOORDINATE_0228_0739)",
         "name_origin": "shared_game_title_with_generated_location_label"
       }
     },
@@ -9173,11 +9637,11 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "overworld",
-      "source_label": "Overworld pickup: Rosetower Woods / Snowfield",
+      "source_label": "Overworld pickup: Rosetower Woods / Towerwood",
       "map_label": "Idyll",
       "map_id": "country-of-time",
       "scene_id": "3000",
-      "area_name": "Rosetower Woods / Snowfield",
+      "area_name": "Rosetower Woods / Towerwood",
       "coordinate_key": "MAPCOORDINATE_0258_0979",
       "x": 258.01,
       "y": 978.63,
@@ -9194,7 +9658,7 @@
       "sort_key": [
         0,
         "Idyll",
-        "Rosetower Woods / Snowfield",
+        "Rosetower Woods / Towerwood",
         "MAPCOORDINATE_0258_0979"
       ],
       "source": {
@@ -9202,7 +9666,7 @@
         "marker_type": "lumin_amber",
         "public_source_key": "",
         "display_name": "Lumin Amber",
-        "area_name": "Rosetower Woods / Snowfield",
+        "area_name": "Rosetower Woods / Towerwood",
         "large_area_name": "Rosetower Woods",
         "level_area_name": "Rosetower Woods",
         "static_id": "83419548",
@@ -9212,7 +9676,7 @@
         "source_item_id": "1101",
         "mark_config_id": "10505",
         "id_in_type": "11042",
-        "source_name": "Lumin Amber - Rosetower Woods / Snowfield (MAPCOORDINATE_0258_0979)",
+        "source_name": "Lumin Amber - Rosetower Woods / Towerwood (MAPCOORDINATE_0258_0979)",
         "name_origin": "shared_game_title_with_generated_location_label"
       }
     },
@@ -9222,11 +9686,11 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "overworld",
-      "source_label": "Overworld pickup: Rosetower Woods / Snowfield",
+      "source_label": "Overworld pickup: Rosetower Woods / Towerwood",
       "map_label": "Idyll",
       "map_id": "country-of-time",
       "scene_id": "3000",
-      "area_name": "Rosetower Woods / Snowfield",
+      "area_name": "Rosetower Woods / Towerwood",
       "coordinate_key": "MAPCOORDINATE_0265_0822",
       "x": 265.49,
       "y": 822.0,
@@ -9243,7 +9707,7 @@
       "sort_key": [
         0,
         "Idyll",
-        "Rosetower Woods / Snowfield",
+        "Rosetower Woods / Towerwood",
         "MAPCOORDINATE_0265_0822"
       ],
       "source": {
@@ -9251,7 +9715,7 @@
         "marker_type": "lumin_amber",
         "public_source_key": "",
         "display_name": "Lumin Amber",
-        "area_name": "Rosetower Woods / Snowfield",
+        "area_name": "Rosetower Woods / Towerwood",
         "large_area_name": "Rosetower Woods",
         "level_area_name": "Rosetower Woods",
         "static_id": "89720832",
@@ -9261,7 +9725,7 @@
         "source_item_id": "1101",
         "mark_config_id": "10505",
         "id_in_type": "11042",
-        "source_name": "Lumin Amber - Rosetower Woods / Snowfield (MAPCOORDINATE_0265_0822)",
+        "source_name": "Lumin Amber - Rosetower Woods / Towerwood (MAPCOORDINATE_0265_0822)",
         "name_origin": "shared_game_title_with_generated_location_label"
       }
     },
@@ -9271,11 +9735,11 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "overworld",
-      "source_label": "Overworld pickup: Rosetower Woods / Snowfield",
+      "source_label": "Overworld pickup: Rosetower Woods / Towerwood",
       "map_label": "Idyll",
       "map_id": "country-of-time",
       "scene_id": "3000",
-      "area_name": "Rosetower Woods / Snowfield",
+      "area_name": "Rosetower Woods / Towerwood",
       "coordinate_key": "MAPCOORDINATE_0373_1053",
       "x": 372.55,
       "y": 1052.84,
@@ -9292,7 +9756,7 @@
       "sort_key": [
         0,
         "Idyll",
-        "Rosetower Woods / Snowfield",
+        "Rosetower Woods / Towerwood",
         "MAPCOORDINATE_0373_1053"
       ],
       "source": {
@@ -9300,7 +9764,7 @@
         "marker_type": "lumin_amber",
         "public_source_key": "",
         "display_name": "Lumin Amber",
-        "area_name": "Rosetower Woods / Snowfield",
+        "area_name": "Rosetower Woods / Towerwood",
         "large_area_name": "Rosetower Woods",
         "level_area_name": "Rosetower Woods",
         "static_id": "90424531",
@@ -9310,7 +9774,7 @@
         "source_item_id": "1101",
         "mark_config_id": "10505",
         "id_in_type": "11042",
-        "source_name": "Lumin Amber - Rosetower Woods / Snowfield (MAPCOORDINATE_0373_1053)",
+        "source_name": "Lumin Amber - Rosetower Woods / Towerwood (MAPCOORDINATE_0373_1053)",
         "name_origin": "shared_game_title_with_generated_location_label"
       }
     },
@@ -9320,11 +9784,11 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "overworld",
-      "source_label": "Overworld pickup: Rosetower Woods / Snowfield",
+      "source_label": "Overworld pickup: Rosetower Woods / Towerwood",
       "map_label": "Idyll",
       "map_id": "country-of-time",
       "scene_id": "3000",
-      "area_name": "Rosetower Woods / Snowfield",
+      "area_name": "Rosetower Woods / Towerwood",
       "coordinate_key": "MAPCOORDINATE_0461_0757",
       "x": 460.82,
       "y": 757.22,
@@ -9341,7 +9805,7 @@
       "sort_key": [
         0,
         "Idyll",
-        "Rosetower Woods / Snowfield",
+        "Rosetower Woods / Towerwood",
         "MAPCOORDINATE_0461_0757"
       ],
       "source": {
@@ -9349,7 +9813,7 @@
         "marker_type": "lumin_amber",
         "public_source_key": "",
         "display_name": "Lumin Amber",
-        "area_name": "Rosetower Woods / Snowfield",
+        "area_name": "Rosetower Woods / Towerwood",
         "large_area_name": "Rosetower Woods",
         "level_area_name": "Rosetower Woods",
         "static_id": "84790331",
@@ -9359,7 +9823,7 @@
         "source_item_id": "1101",
         "mark_config_id": "10505",
         "id_in_type": "11042",
-        "source_name": "Lumin Amber - Rosetower Woods / Snowfield (MAPCOORDINATE_0461_0757)",
+        "source_name": "Lumin Amber - Rosetower Woods / Towerwood (MAPCOORDINATE_0461_0757)",
         "name_origin": "shared_game_title_with_generated_location_label"
       }
     },
@@ -9369,11 +9833,11 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "overworld",
-      "source_label": "Overworld pickup: Rosetower Woods / Snowfield",
+      "source_label": "Overworld pickup: Rosetower Woods / Towerwood",
       "map_label": "Idyll",
       "map_id": "country-of-time",
       "scene_id": "3000",
-      "area_name": "Rosetower Woods / Snowfield",
+      "area_name": "Rosetower Woods / Towerwood",
       "coordinate_key": "MAPCOORDINATE_0524_0771",
       "x": 524.26,
       "y": 770.63,
@@ -9390,7 +9854,7 @@
       "sort_key": [
         0,
         "Idyll",
-        "Rosetower Woods / Snowfield",
+        "Rosetower Woods / Towerwood",
         "MAPCOORDINATE_0524_0771"
       ],
       "source": {
@@ -9398,7 +9862,7 @@
         "marker_type": "lumin_amber",
         "public_source_key": "",
         "display_name": "Lumin Amber",
-        "area_name": "Rosetower Woods / Snowfield",
+        "area_name": "Rosetower Woods / Towerwood",
         "large_area_name": "Rosetower Woods",
         "level_area_name": "Rosetower Woods",
         "static_id": "81484365",
@@ -9408,7 +9872,7 @@
         "source_item_id": "1101",
         "mark_config_id": "10505",
         "id_in_type": "11042",
-        "source_name": "Lumin Amber - Rosetower Woods / Snowfield (MAPCOORDINATE_0524_0771)",
+        "source_name": "Lumin Amber - Rosetower Woods / Towerwood (MAPCOORDINATE_0524_0771)",
         "name_origin": "shared_game_title_with_generated_location_label"
       }
     },
@@ -9418,11 +9882,11 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "overworld",
-      "source_label": "Overworld pickup: Rosetower Woods / Snowfield",
+      "source_label": "Overworld pickup: Rosetower Woods / Towerwood",
       "map_label": "Idyll",
       "map_id": "country-of-time",
       "scene_id": "3000",
-      "area_name": "Rosetower Woods / Snowfield",
+      "area_name": "Rosetower Woods / Towerwood",
       "coordinate_key": "MAPCOORDINATE_0555_0789",
       "x": 554.87,
       "y": 789.33,
@@ -9439,7 +9903,7 @@
       "sort_key": [
         0,
         "Idyll",
-        "Rosetower Woods / Snowfield",
+        "Rosetower Woods / Towerwood",
         "MAPCOORDINATE_0555_0789"
       ],
       "source": {
@@ -9447,7 +9911,7 @@
         "marker_type": "lumin_amber",
         "public_source_key": "",
         "display_name": "Lumin Amber",
-        "area_name": "Rosetower Woods / Snowfield",
+        "area_name": "Rosetower Woods / Towerwood",
         "large_area_name": "Rosetower Woods",
         "level_area_name": "Rosetower Woods",
         "static_id": "85058117",
@@ -9457,7 +9921,7 @@
         "source_item_id": "1101",
         "mark_config_id": "10505",
         "id_in_type": "11042",
-        "source_name": "Lumin Amber - Rosetower Woods / Snowfield (MAPCOORDINATE_0555_0789)",
+        "source_name": "Lumin Amber - Rosetower Woods / Towerwood (MAPCOORDINATE_0555_0789)",
         "name_origin": "shared_game_title_with_generated_location_label"
       }
     },
@@ -9467,11 +9931,11 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "overworld",
-      "source_label": "Overworld pickup: Rosetower Woods / Snowfield",
+      "source_label": "Overworld pickup: Rosetower Woods / Towerwood",
       "map_label": "Idyll",
       "map_id": "country-of-time",
       "scene_id": "3000",
-      "area_name": "Rosetower Woods / Snowfield",
+      "area_name": "Rosetower Woods / Towerwood",
       "coordinate_key": "MAPCOORDINATE_0571_0752",
       "x": 570.72,
       "y": 752.08,
@@ -9488,7 +9952,7 @@
       "sort_key": [
         0,
         "Idyll",
-        "Rosetower Woods / Snowfield",
+        "Rosetower Woods / Towerwood",
         "MAPCOORDINATE_0571_0752"
       ],
       "source": {
@@ -9496,7 +9960,7 @@
         "marker_type": "lumin_amber",
         "public_source_key": "",
         "display_name": "Lumin Amber",
-        "area_name": "Rosetower Woods / Snowfield",
+        "area_name": "Rosetower Woods / Towerwood",
         "large_area_name": "Rosetower Woods",
         "level_area_name": "Rosetower Woods",
         "static_id": "83031884",
@@ -9506,7 +9970,7 @@
         "source_item_id": "1101",
         "mark_config_id": "10505",
         "id_in_type": "11042",
-        "source_name": "Lumin Amber - Rosetower Woods / Snowfield (MAPCOORDINATE_0571_0752)",
+        "source_name": "Lumin Amber - Rosetower Woods / Towerwood (MAPCOORDINATE_0571_0752)",
         "name_origin": "shared_game_title_with_generated_location_label"
       }
     },
@@ -15957,7 +16421,7 @@
     }
   ],
   "source_notes": {
-    "aniimo": "pet_research_content_data filtered to public, non-test, non-blackrainbow forms.",
+    "aniimo": "Official form crosswalk records with local asset coverage, reconciled to pet_research_content_data. Internal placeholder form keys are admitted only when the official catalog identifies a published form.",
     "ambers": "Static overworld Amber nodes, map-discovered Lumin Markings, Sanctums that award Lumen Seeds, verified Boss Clear rewards, and verified Runaway Amber or Lumin Collection event rewards. Overworld nodes retain their canonical static IDs and generated location labels."
   }
 }

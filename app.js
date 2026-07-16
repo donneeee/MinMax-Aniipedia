@@ -2,10 +2,11 @@ const DATA_URL = "./data/map_site_data.json?v=20260716-whisperwake-spawn-audit-v
 const CHECKLIST_URL = "./data/checklist_data.json?v=20260716-catalog-preview-v001";
 const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260716-itemlog-catalog-v001";
 const ANIILOG_DATA_URL = "./data/aniilog_data.json?v=20260716-aniilog-exploration-v001";
-const APP_VERSION = "v0.3.52";
+const APP_VERSION = "v0.3.53";
 const TRACKING_TICK_MS = 1000;
 const LOCAL_TRACKING_STORAGE_KEY = "minmax-map:tracking:v1";
 const LOCAL_COMPLETION_STORAGE_KEY = "minmax-map:completed:v1";
+const LOCAL_PREFERENCES_STORAGE_KEY = "minmax-map:preferences:v1";
 const MIN_SCALE = 0.03;
 const MAX_SCALE = 16;
 const MAP_EDGE_MARGIN = 48;
@@ -16,6 +17,18 @@ const REQUESTED_MAP_ID = new URLSearchParams(window.location.search).get("map");
 const MOBILE_LAYOUT_QUERY = window.matchMedia("(max-width: 820px)");
 // Reserved for temporarily suppressing incomplete physical reward sources.
 const TEMPORARILY_HIDDEN_ITEM_IDS = new Set();
+const ANIILOG_STAT_CONFIG = Object.freeze([
+  { sourceLabel: "HP", label: "HP", id: "hp", color: "#e56f5f" },
+  { sourceLabel: "Attack", label: "Attack", id: "attack", color: "#e8bf63" },
+  { sourceLabel: "Magic Attack", label: "Magic Attack", id: "magic-attack", color: "#b48fe8", preference: "showMagicAttack" },
+  { sourceLabel: "Break", label: "Break", id: "break", color: "#e0ad59" },
+  { sourceLabel: "Defense", label: "Defense", id: "defense", color: "#75c7d8" },
+  { sourceLabel: "Magic Defense", label: "Magic Defense", id: "magic-defense", color: "#8eb8f4" },
+  { sourceLabel: "EP Regen", label: "Regen", id: "regen", color: "#73c66b" },
+]);
+const DEFAULT_PREFERENCES = Object.freeze({
+  showMagicAttack: false,
+});
 const COLORS = [
   "#7fc6b2",
   "#e8bf63",
@@ -58,6 +71,7 @@ const state = {
   enabled: new Set(),
   activeMapId: REQUESTED_MAP_ID || "country-of-time",
   activeLayer: "items",
+  eggSubfilter: "all",
   search: "",
   scale: 1,
   panX: 0,
@@ -91,6 +105,9 @@ const state = {
     aniilog: "",
     itemlog: "",
   },
+  catalogSort: {
+    aniilog: "aniilog-number",
+  },
   catalogIndexScroll: {
     aniilog: 0,
     itemlog: 0,
@@ -108,6 +125,7 @@ const state = {
   pendingAniilogLocate: null,
   pendingReset: false,
   localStorageError: "",
+  preferences: { ...DEFAULT_PREFERENCES },
 };
 
 const els = {
@@ -386,6 +404,20 @@ function isEggMarker(spawn) {
   return spawn?.marker_type === "elite_egg" || spawn?.marker_type === "alpha_egg";
 }
 
+function eggKindForItem(item) {
+  if (!item || !isEggItem(item)) return "";
+  if (item.egg_kind === "elite" || item.is_elite_egg) return "elite";
+  if (item.egg_kind === "alpha" || item.is_alpha_egg) return "alpha";
+  return "";
+}
+
+function itemMatchesActiveEggSubfilter(item) {
+  return !isEggItem(item)
+    || state.activeLayer !== "eggs"
+    || state.eggSubfilter === "all"
+    || eggKindForItem(item) === state.eggSubfilter;
+}
+
 function stripFormSuffix(value) {
   return String(value || "").replace(/\s+\([^()]+\)\s*$/, "");
 }
@@ -620,8 +652,10 @@ function loadLocalTracking() {
   try {
     const rawTracking = window.localStorage.getItem(LOCAL_TRACKING_STORAGE_KEY);
     const rawCompleted = window.localStorage.getItem(LOCAL_COMPLETION_STORAGE_KEY);
+    const rawPreferences = window.localStorage.getItem(LOCAL_PREFERENCES_STORAGE_KEY);
     const trackingEntries = rawTracking ? JSON.parse(rawTracking) : [];
     const completedEntries = rawCompleted ? JSON.parse(rawCompleted) : [];
+    const preferences = rawPreferences ? JSON.parse(rawPreferences) : {};
     const normalizedTracking = Array.isArray(trackingEntries)
       ? trackingEntries.map(normalizeTrackingEntry).filter(Boolean)
       : [];
@@ -629,9 +663,14 @@ function loadLocalTracking() {
     state.completed = new Set(Array.isArray(completedEntries)
       ? completedEntries.map((entry) => String(entry || "").trim()).filter(Boolean)
       : []);
+    state.preferences = {
+      ...DEFAULT_PREFERENCES,
+      showMagicAttack: Boolean(preferences?.showMagicAttack),
+    };
   } catch (error) {
     state.tracking = new Map();
     state.completed = new Set();
+    state.preferences = { ...DEFAULT_PREFERENCES };
     updateLocalStorageError(error);
   }
 }
@@ -646,6 +685,10 @@ function persistLocalTracking() {
       LOCAL_COMPLETION_STORAGE_KEY,
       JSON.stringify([...state.completed]),
     );
+    window.localStorage.setItem(
+      LOCAL_PREFERENCES_STORAGE_KEY,
+      JSON.stringify(state.preferences),
+    );
     state.localStorageError = "";
     return true;
   } catch (error) {
@@ -658,6 +701,7 @@ function clearLocalTracking() {
   try {
     window.localStorage.removeItem(LOCAL_TRACKING_STORAGE_KEY);
     window.localStorage.removeItem(LOCAL_COMPLETION_STORAGE_KEY);
+    window.localStorage.removeItem(LOCAL_PREFERENCES_STORAGE_KEY);
     state.localStorageError = "";
     return true;
   } catch (error) {
@@ -720,6 +764,7 @@ function resetLocalData() {
   try {
     state.tracking = new Map();
     state.completed = new Set();
+    state.preferences = { ...DEFAULT_PREFERENCES };
     clearLocalTracking();
   } finally {
     state.pendingReset = false;
@@ -899,6 +944,40 @@ function renderSettings() {
   account.append(identity, stats, actions);
   els.settingsContent.append(account);
 
+  const aniilogDisplay = document.createElement("section");
+  aniilogDisplay.className = "settings-card settings-display-card";
+  const displayCopy = document.createElement("div");
+  displayCopy.className = "settings-account";
+  const displayTitle = document.createElement("strong");
+  displayTitle.textContent = "Aniilog display";
+  const displayDetail = document.createElement("small");
+  displayDetail.textContent = "Choose whether legacy stats appear in Aniilog comparison bars.";
+  displayCopy.append(displayTitle, displayDetail);
+
+  const magicAttackToggle = document.createElement("label");
+  magicAttackToggle.className = "settings-toggle";
+  const magicAttackInput = document.createElement("input");
+  magicAttackInput.type = "checkbox";
+  magicAttackInput.checked = Boolean(state.preferences.showMagicAttack);
+  magicAttackInput.addEventListener("change", () => {
+    state.preferences.showMagicAttack = magicAttackInput.checked;
+    if (!magicAttackInput.checked && state.catalogSort.aniilog === "magic-attack") {
+      state.catalogSort.aniilog = "aniilog-number";
+    }
+    persistLocalTracking();
+    renderSettings();
+    if (state.sidebarView === "aniilog") renderCatalogPreview();
+  });
+  const magicAttackCopy = document.createElement("span");
+  const magicAttackLabel = document.createElement("strong");
+  magicAttackLabel.textContent = "Show Magic Attack";
+  const magicAttackDescription = document.createElement("small");
+  magicAttackDescription.textContent = "Hidden by default because Magic Attack is not currently used.";
+  magicAttackCopy.append(magicAttackLabel, magicAttackDescription);
+  magicAttackToggle.append(magicAttackInput, magicAttackCopy);
+  aniilogDisplay.append(displayCopy, magicAttackToggle);
+  els.settingsContent.append(aniilogDisplay);
+
   if (state.localStorageError) {
     els.settingsContent.append(renderSyncCallout(
       "Browser storage is unavailable",
@@ -1039,8 +1118,78 @@ function catalogEntriesForView(view = state.sidebarView) {
       : entries.filter((entry) => catalogCategoryForEntry(entry, view) === category);
   }
   const query = catalogSearchForView(view).trim().toLowerCase();
-  if (!query) return entries;
-  return entries.filter((entry) => catalogEntrySearchText(entry).includes(query));
+  if (query) {
+    const terms = query.split(/\s+/).filter(Boolean);
+    entries = entries.filter((entry) => {
+      const text = catalogEntrySearchText(entry);
+      return terms.every((term) => text.includes(term));
+    });
+  }
+  return view === "aniilog" ? sortAniilogEntries(entries) : entries;
+}
+
+function aniilogSortOption() {
+  const activeId = state.catalogSort.aniilog || "aniilog-number";
+  return [
+    { id: "aniilog-number", label: "Aniilog number" },
+    ...visibleAniilogStatConfig().map((stat) => ({
+      id: stat.id,
+      label: `${stat.label} (high to low)`,
+      sourceLabel: stat.sourceLabel,
+    })),
+  ].find((option) => option.id === activeId) || { id: "aniilog-number", label: "Aniilog number" };
+}
+
+function aniilogStatValue(entry, sourceLabel) {
+  const value = (entry?.stats || []).find((stat) => stat.label === sourceLabel)?.value;
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue) ? numericValue : null;
+}
+
+function compareAniilogEntries(left, right) {
+  const numberDifference = numericSortValue(left?.aniilog_number) - numericSortValue(right?.aniilog_number);
+  if (numberDifference !== 0) return numberDifference;
+  const nameDifference = compareText(left?.name, right?.name);
+  if (nameDifference !== 0) return nameDifference;
+  return compareText(left?.form_label, right?.form_label);
+}
+
+function sortAniilogEntries(entries) {
+  const sort = aniilogSortOption();
+  const sorted = [...entries];
+  if (!sort.sourceLabel) return sorted.sort(compareAniilogEntries);
+
+  return sorted.sort((left, right) => {
+    const leftValue = aniilogStatValue(left, sort.sourceLabel);
+    const rightValue = aniilogStatValue(right, sort.sourceLabel);
+    if (leftValue === null && rightValue !== null) return 1;
+    if (rightValue === null && leftValue !== null) return -1;
+    if (leftValue !== null && rightValue !== null && rightValue !== leftValue) {
+      return rightValue - leftValue;
+    }
+    return compareAniilogEntries(left, right);
+  });
+}
+
+function catalogAbilitySearchTerms(abilities) {
+  if (!Array.isArray(abilities)) return [];
+  return abilities.flatMap((ability) => {
+    const combat = ability?.combat && typeof ability.combat === "object" ? ability.combat : {};
+    return [
+      ability?.name,
+      ability?.description,
+      ability?.group,
+      ability?.power,
+      ability?.consume,
+      combat.category,
+      ...(Array.isArray(combat.types) ? combat.types : []),
+      combat.element,
+      combat.might,
+      combat.ep_cost,
+      combat.break_power,
+      combat.cooldown,
+    ];
+  });
 }
 
 function catalogEntrySearchText(entry) {
@@ -1061,6 +1210,13 @@ function catalogEntrySearchText(entry) {
     entry?.carried_effects?.core_effects,
     entry?.carried_effects?.advanced_effects?.flatMap((effect) => effect?.effects),
     entry?.elements?.map((element) => element?.name),
+    entry?.stats?.flatMap((stat) => [stat?.label, stat?.value]),
+    catalogAbilitySearchTerms(entry?.skills),
+    catalogAbilitySearchTerms(entry?.ultimates),
+    catalogAbilitySearchTerms(entry?.traits),
+    catalogAbilitySearchTerms(entry?.mobility_skills),
+    entry?.exploration?.flatMap((ability) => [ability?.name, ability?.description, ability?.level]),
+    entry?.homeland?.flatMap((ability) => [ability?.name, ability?.description, ability?.level]),
     entry?.locations?.flatMap((location) => [location?.map_label, location?.areas]),
     entry?.spawn_requirements,
   ]);
@@ -1076,6 +1232,76 @@ function appendCatalogFact(grid, label, value) {
   description.textContent = String(value);
   fact.append(term, description);
   grid.append(fact);
+}
+
+function visibleAniilogStatConfig() {
+  return ANIILOG_STAT_CONFIG.filter((stat) => !stat.preference || state.preferences[stat.preference]);
+}
+
+function aniilogStatRanges(entries) {
+  const ranges = new Map();
+  ANIILOG_STAT_CONFIG.forEach((stat) => {
+    const values = entries
+      .map((entry) => (entry.stats || []).find((candidate) => candidate.label === stat.sourceLabel)?.value)
+      .map(Number)
+      .filter(Number.isFinite);
+    if (!values.length) return;
+    ranges.set(stat.sourceLabel, {
+      min: Math.min(...values),
+      max: Math.max(...values),
+    });
+  });
+  return ranges;
+}
+
+function normalizedAniilogStatFill(value, range) {
+  if (!Number.isFinite(value) || !range) return 0;
+  if (range.max <= range.min) return 100;
+  const normalized = clamp((value - range.min) / (range.max - range.min), 0, 1);
+  return 12 + normalized * 88;
+}
+
+function renderAniilogStatComparison(entry) {
+  const stats = document.createElement("div");
+  stats.className = "catalog-stat-comparison";
+  const values = new Map((entry.stats || []).map((stat) => [stat.label, Number(stat.value)]));
+  const ranges = aniilogStatRanges(state.aniilogData?.entries || [entry]);
+
+  visibleAniilogStatConfig().forEach((stat) => {
+    const value = values.get(stat.sourceLabel);
+    const range = ranges.get(stat.sourceLabel);
+    const card = document.createElement("section");
+    card.className = `catalog-stat-card catalog-stat-card--${stat.id}`;
+    card.style.setProperty("--catalog-stat-color", stat.color);
+
+    const label = document.createElement("h4");
+    label.textContent = stat.label;
+    const numericValue = document.createElement("strong");
+    numericValue.className = "catalog-stat-value";
+    numericValue.textContent = Number.isFinite(value) ? formatNumber(value, 0) : "-";
+    const track = document.createElement("div");
+    track.className = "catalog-stat-bar";
+    track.setAttribute("role", "img");
+    const fill = document.createElement("span");
+    const fillPercent = normalizedAniilogStatFill(value, range);
+    fill.style.width = `${fillPercent}%`;
+    track.setAttribute(
+      "aria-label",
+      range && Number.isFinite(value)
+        ? `${stat.label}: ${formatNumber(value, 0)}. Dataset range ${formatNumber(range.min, 0)} to ${formatNumber(range.max, 0)}.`
+        : `${stat.label}: no data.`,
+    );
+    track.append(fill);
+    const scale = document.createElement("small");
+    scale.className = "catalog-stat-range";
+    scale.textContent = range
+      ? `${formatNumber(range.min, 0)} - ${formatNumber(range.max, 0)}`
+      : "No dataset range";
+    card.append(label, numericValue, track, scale);
+    stats.append(card);
+  });
+
+  return stats;
 }
 
 function createCatalogSection(title) {
@@ -1105,9 +1331,16 @@ function createCatalogIndexRow(entry, selectedId, view, virtualIndex) {
   const name = document.createElement("strong");
   name.textContent = entry.name;
   const meta = document.createElement("small");
-  meta.textContent = view === "aniilog"
-    ? `${entry.aniilog_number || "Special"} - ${entry.form_label || "Basic"}`
-    : [entry.type || "Item", entry.quality].filter(Boolean).join(" - ");
+  if (view === "aniilog") {
+    const sort = aniilogSortOption();
+    const statValue = sort.sourceLabel ? aniilogStatValue(entry, sort.sourceLabel) : null;
+    meta.textContent = [
+      `${entry.aniilog_number || "Special"} - ${entry.form_label || "Basic"}`,
+      statValue === null ? "" : `${sort.label.replace(" (high to low)", "")} ${formatNumber(statValue, 0)}`,
+    ].filter(Boolean).join(" - ");
+  } else {
+    meta.textContent = [entry.type || "Item", entry.quality].filter(Boolean).join(" - ");
+  }
   copy.append(name, meta);
   button.append(icon, copy);
   button.addEventListener("click", () => {
@@ -1168,7 +1401,7 @@ function renderCatalogSearch(view, existingLabel = null) {
   input.type = "search";
   input.autocomplete = "off";
   input.value = catalogSearchForView(view);
-  input.placeholder = view === "aniilog" ? "Aniimo, form, element, location" : "Item, type, or source";
+  input.placeholder = view === "aniilog" ? "Aniimo, form, skill, or effect" : "Item, type, or source";
   input.addEventListener("input", () => {
     const selectionStart = input.selectionStart;
     const selectionEnd = input.selectionEnd;
@@ -1183,6 +1416,41 @@ function renderCatalogSearch(view, existingLabel = null) {
     }
   });
   label.append(input);
+  return label;
+}
+
+function renderAniilogSortControl() {
+  const label = document.createElement("label");
+  label.className = "catalog-sort-label";
+  label.textContent = "Sort";
+  const select = document.createElement("select");
+  select.className = "catalog-sort-select";
+  select.setAttribute("aria-label", "Sort Aniimo results");
+  const options = [
+    { id: "aniilog-number", label: "Aniilog number" },
+    ...visibleAniilogStatConfig().map((stat) => ({
+      id: stat.id,
+      label: `${stat.label} (high to low)`,
+    })),
+  ];
+  const activeSort = aniilogSortOption().id;
+  options.forEach((option) => {
+    const element = document.createElement("option");
+    element.value = option.id;
+    element.textContent = option.label;
+    element.selected = option.id === activeSort;
+    select.append(element);
+  });
+  select.addEventListener("change", () => {
+    state.catalogSort.aniilog = select.value;
+    state.catalogIndexScroll.aniilog = 0;
+    const visibleEntries = catalogEntriesForView("aniilog");
+    if (!visibleEntries.some((entry) => entry.id === state.catalogSelection.aniilog)) {
+      state.catalogSelection.aniilog = visibleEntries[0]?.id || "";
+    }
+    renderCatalogPreview();
+  });
+  label.append(select);
   return label;
 }
 
@@ -1619,10 +1887,7 @@ function renderAniilogCatalogRecord(entry) {
   }
 
   const statSection = createCatalogSection("Base stats");
-  const stats = document.createElement("dl");
-  stats.className = "catalog-stat-grid";
-  (entry.stats || []).forEach((stat) => appendCatalogFact(stats, stat.label, stat.value));
-  statSection.append(stats);
+  statSection.append(renderAniilogStatComparison(entry));
   record.append(statSection);
 
   record.append(renderCatalogAbilitySection("Combat skills", entry.skills, "No combat skill data is currently available."));
@@ -1812,6 +2077,7 @@ function renderCatalogSidebar(view, title, allEntries, entries, selectedId, stat
   if (allowControls) {
     const categoryToolbar = renderCatalogCategoryToolbar(view);
     if (categoryToolbar) fragment.append(categoryToolbar);
+    if (view === "aniilog") fragment.append(renderAniilogSortControl());
     fragment.append(renderCatalogSearch(view, existingSearchLabel));
   }
 
@@ -3093,7 +3359,9 @@ function visibleSpawnEntries() {
 
 function updateFilterCount() {
   if (!els.filterCount || !state.data) return;
-  const activeItems = activeMapItems().filter((item) => item.layer_id === state.activeLayer);
+  const activeItems = activeMapItems().filter((item) => (
+    item.layer_id === state.activeLayer && itemMatchesActiveEggSubfilter(item)
+  ));
   const selectedCount = activeItems.filter((item) => state.enabled.has(item.item_id)).length;
   els.filterCount.textContent = `${selectedCount} / ${activeItems.length}`;
 }
@@ -3106,8 +3374,15 @@ function refreshVisibility() {
   for (const row of els.itemList.querySelectorAll(".item-row")) {
     const item = state.data.itemsById.get(row.dataset.itemId);
     row.classList.toggle("enabled", state.enabled.has(item.item_id));
-    row.hidden = !itemMatches(item);
+    row.hidden = !itemMatches(item) || !itemMatchesActiveEggSubfilter(item);
     row.setAttribute("aria-pressed", String(state.enabled.has(item.item_id)));
+  }
+
+  for (const button of els.itemList.querySelectorAll(".egg-subfilter-tab")) {
+    button.setAttribute(
+      "aria-pressed",
+      String(state.eggSubfilter === button.dataset.eggKind),
+    );
   }
 
   for (const section of els.itemList.querySelectorAll(".layer-panel")) {
@@ -3163,12 +3438,14 @@ function renderItems() {
     tab.addEventListener("click", () => {
       clearLocatedSpawn();
       state.activeLayer = layer.id;
+      if (layer.id === "eggs") state.eggSubfilter = "all";
       refreshVisibility();
     });
     tab.addEventListener("dblclick", (event) => {
       event.preventDefault();
       clearLocatedSpawn();
       state.activeLayer = layer.id;
+      if (layer.id === "eggs") state.eggSubfilter = "all";
       const selectableItems = layerItems.filter((item) => itemPassesFilters(item));
       const allSelected = selectableItems.length > 0
         && selectableItems.every((item) => state.enabled.has(item.item_id));
@@ -3193,6 +3470,59 @@ function renderItems() {
     section.setAttribute("role", "tabpanel");
     section.setAttribute("aria-labelledby", tab.id);
     section.hidden = layer.id !== state.activeLayer;
+
+    if (layer.id === "eggs") {
+      const subfilters = document.createElement("div");
+      subfilters.className = "egg-subfilter-tabs";
+      subfilters.setAttribute("role", "group");
+      subfilters.setAttribute("aria-label", "Egg type filters");
+
+      [
+        { id: "elite", label: "Elite Eggs" },
+        { id: "alpha", label: "Alpha Eggs" },
+      ].forEach((subfilter) => {
+        const subtypeItems = layerItems.filter((item) => eggKindForItem(item) === subfilter.id);
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "egg-subfilter-tab";
+        button.dataset.eggKind = subfilter.id;
+        button.textContent = subfilter.label;
+        button.disabled = subtypeItems.length === 0;
+        button.setAttribute("aria-pressed", String(state.eggSubfilter === subfilter.id));
+        button.title = "Double-click to show only this egg type";
+        button.addEventListener("mousedown", preventControlFocus);
+        button.addEventListener("click", () => {
+          clearLocatedSpawn();
+          state.activeLayer = "eggs";
+          state.eggSubfilter = subfilter.id;
+          refreshVisibility();
+        });
+        button.addEventListener("dblclick", (event) => {
+          event.preventDefault();
+          clearLocatedSpawn();
+          state.activeLayer = "eggs";
+          state.eggSubfilter = subfilter.id;
+          const allSelected = subtypeItems.length > 0
+            && subtypeItems.every((item) => state.enabled.has(item.item_id));
+          layerItems.forEach((item) => {
+            if (eggKindForItem(item) !== subfilter.id) {
+              state.enabled.delete(item.item_id);
+            }
+          });
+          subtypeItems.forEach((item) => {
+            if (allSelected) {
+              state.enabled.delete(item.item_id);
+            } else {
+              state.enabled.add(item.item_id);
+            }
+          });
+          refreshVisibility();
+        });
+        subfilters.append(button);
+      });
+
+      section.append(subfilters);
+    }
 
     layerItems.forEach((item) => {
     const tier = itemTier(item);
