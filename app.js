@@ -1,8 +1,8 @@
-const DATA_URL = "./data/map_site_data.json?v=20260717-lumin-marking-icon-v001";
+const DATA_URL = "./data/map_site_data.json?v=20260717-geography-hierarchy-v001";
 const CHECKLIST_URL = "./data/checklist_data.json?v=20260717-lumin-marking-icon-v001";
-const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260717-itemlog-known-requirements-v001";
-const ANIILOG_DATA_URL = "./data/aniilog_data.json?v=20260717-boss-refresh-seconds-v001";
-const APP_VERSION = "v0.3.58";
+const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260718-itemlog-icon-recovery-v002";
+const ANIILOG_DATA_URL = "./data/aniilog_data.json?v=20260718-core-skills-v001";
+const APP_VERSION = "v0.3.60";
 const TRACKING_TICK_MS = 1000;
 const LOCAL_TRACKING_STORAGE_KEY = "minmax-map:tracking:v1";
 const LOCAL_COMPLETION_STORAGE_KEY = "minmax-map:completed:v1";
@@ -18,13 +18,13 @@ const MOBILE_LAYOUT_QUERY = window.matchMedia("(max-width: 820px)");
 // Reserved for temporarily suppressing incomplete physical reward sources.
 const TEMPORARILY_HIDDEN_ITEM_IDS = new Set();
 const ANIILOG_STAT_CONFIG = Object.freeze([
-  { sourceLabel: "HP", label: "HP", id: "hp", color: "#ef6a5b" },
-  { sourceLabel: "Attack", label: "Attack", id: "attack", color: "#ffd166" },
+  { sourceLabel: "HP", label: "HP", id: "hp", color: "#ef6a5b", icon: "./assets/aniilog/stats/hp.png" },
+  { sourceLabel: "Attack", label: "Attack", id: "attack", color: "#ffd166", icon: "./assets/aniilog/stats/attack.png" },
   { sourceLabel: "Magic Attack", label: "Magic Attack", id: "magic-attack", color: "#ec76c5", preference: "showMagicAttack" },
-  { sourceLabel: "Break", label: "Break", id: "break", color: "#b678f4" },
-  { sourceLabel: "Defense", label: "Defense", id: "defense", color: "#44c5d8" },
-  { sourceLabel: "Magic Defense", label: "Magic Defense", id: "magic-defense", color: "#6fa8ff" },
-  { sourceLabel: "EP Regen", label: "Regen", id: "regen", color: "#65d36e" },
+  { sourceLabel: "Break", label: "Break", id: "break", color: "#b678f4", icon: "./assets/aniilog/stats/break.png" },
+  { sourceLabel: "Defense", label: "Defense", id: "defense", color: "#44c5d8", icon: "./assets/aniilog/stats/defense.png" },
+  { sourceLabel: "Magic Defense", label: "Magic Defense", id: "magic-defense", color: "#6fa8ff", icon: "./assets/aniilog/stats/magic-defense.png" },
+  { sourceLabel: "EP Regen", label: "Regen", id: "regen", color: "#65d36e", icon: "./assets/aniilog/stats/regen.png" },
 ]);
 const ANIILOG_BADGE_ASSET_ROOT = "./assets/aniilog";
 const CATALOG_ROLE_META = Object.freeze({
@@ -540,6 +540,35 @@ function mapLabelForSpawn(spawn) {
   return state.data.mapsById.get(spawn.map_id)?.label || "";
 }
 
+function cleanGeographicName(value, formLabel = "") {
+  const formKey = String(formLabel || "").trim().toLocaleLowerCase();
+  const seen = new Set();
+  return String(value || "")
+    .split(/\s*\/\s*/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .filter((part) => !formKey || part.toLocaleLowerCase() !== formKey)
+    .filter((part) => {
+      const key = part.toLocaleLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .join(" / ");
+}
+
+function mapRegionForSpawn(spawn) {
+  if (!state.data || !spawn) return "";
+  const map = state.data.mapsById.get(spawn.map_id);
+  return map?.region_label || map?.label || "";
+}
+
+function regionDetailValue(spawn) {
+  if (!state.data || !spawn) return "";
+  const map = state.data.mapsById.get(spawn.map_id);
+  return spawn.region_name || map?.region_label || "";
+}
+
 function spawnOnActiveMap(spawn) {
   return Boolean(spawn) && spawn.map_id === state.activeMapId;
 }
@@ -621,7 +650,10 @@ function locateAniilogEntry(entry) {
 }
 
 function areaDetailValue(spawn) {
-  return spawn.area_name || spawn.large_area_name || spawn.level_area_name || spawn.area_inferred_name || spawn.region_name || "";
+  return cleanGeographicName(
+    spawn.large_area_name || spawn.level_area_name || spawn.area_name || "",
+    spawn.form_label,
+  );
 }
 
 function trackingEntryForSpawn(spawn, item) {
@@ -1319,7 +1351,18 @@ function renderAniilogStatComparison(entry) {
     card.style.setProperty("--catalog-stat-color", stat.color);
 
     const label = document.createElement("h4");
-    label.textContent = stat.label;
+    label.className = "catalog-stat-heading";
+    if (stat.icon) {
+      const icon = document.createElement("img");
+      icon.className = "catalog-stat-icon";
+      icon.src = stat.icon;
+      icon.alt = "";
+      icon.setAttribute("aria-hidden", "true");
+      label.append(icon);
+    }
+    const labelText = document.createElement("span");
+    labelText.textContent = stat.label;
+    label.append(labelText);
     const numericValue = document.createElement("strong");
     numericValue.className = "catalog-stat-value";
     numericValue.textContent = Number.isFinite(value) ? formatNumber(value, 0) : "-";
@@ -1364,6 +1407,12 @@ function createCatalogIndexRow(entry, selectedId, view, virtualIndex) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "catalog-index-row catalog-index-row--virtual";
+  if (view === "itemlog") {
+    button.classList.add(
+      "catalog-index-row--tiered",
+      `catalog-index-row--tier-${catalogItemTier(entry.quality)}`,
+    );
+  }
   const selected = entry.id === selectedId;
   button.setAttribute("aria-pressed", String(selected));
   button.dataset.catalogEntryId = entry.id;
@@ -1712,9 +1761,25 @@ function renderCatalogAbilitySection(title, abilities, emptyText = "No data avai
     const icon = makeIcon("catalog-ability-icon", ability.icon);
     icon.alt = `${ability.name} icon`;
     const copy = document.createElement("div");
+    const heading = document.createElement("div");
+    heading.className = "catalog-ability-heading";
     const name = document.createElement("strong");
     name.textContent = ability.name || "Ability";
-    copy.append(name);
+    heading.append(name);
+    if (ability.core) {
+      const coreBadge = document.createElement("span");
+      coreBadge.className = "catalog-core-skill-badge";
+      coreBadge.title = "S Core Skill";
+      const coreIcon = document.createElement("img");
+      coreIcon.src = "./assets/aniilog/skills/core-skill.png";
+      coreIcon.alt = "";
+      coreIcon.setAttribute("aria-hidden", "true");
+      const coreLabel = document.createElement("span");
+      coreLabel.textContent = "Core";
+      coreBadge.append(coreIcon, coreLabel);
+      heading.append(coreBadge);
+    }
+    copy.append(heading);
     const combat = ability.combat && typeof ability.combat === "object" ? ability.combat : null;
     if (combat) {
       const badges = document.createElement("div");
@@ -1737,7 +1802,10 @@ function renderCatalogAbilitySection(title, abilities, emptyText = "No data avai
         badge.append(text);
         badges.append(badge);
       };
-      addBadge(combat.category, "category");
+      const categoryKey = clean(combat.category).toLowerCase();
+      const categoryLabel = categoryKey === "magic" ? "Magical" : combat.category;
+      const categoryType = categoryKey === "magic" ? "category-magical" : `category-${categoryKey || "other"}`;
+      addBadge(categoryLabel, categoryType);
       (Array.isArray(combat.types) ? combat.types : []).forEach((type) => addBadge(type, "type"));
       const elementMeta = catalogElementMeta(combat.element);
       addBadge(combat.element, "element", combat.element_color || elementMeta.color, elementMeta.icon);
@@ -2092,6 +2160,26 @@ function renderAniilogCatalogRecord(entry) {
 
 function qualityClassName(quality) {
   return String(quality || "normal").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-") || "normal";
+}
+
+function catalogItemTier(quality) {
+  switch (qualityClassName(quality)) {
+    case "legendary":
+    case "gold":
+      return "gold";
+    case "epic":
+    case "purple":
+      return "purple";
+    case "rare":
+    case "blue":
+      return "blue";
+    case "uncommon":
+      return "green";
+    case "prismatic":
+      return "prismatic";
+    default:
+      return "grey";
+  }
 }
 
 function renderItemLogRequirements(requirements) {
@@ -3819,7 +3907,7 @@ function createMarkerPin(entry) {
   setPinScreenPosition(pin, spawn);
   pin.setAttribute(
     "aria-label",
-    `${spawn.display_name} ${spawn.area_name || spawn.region_name || ""} ${formatCoordinate(spawn.x)} ${formatCoordinate(spawn.y)}${spawn.is_underground ? " underground" : ""}${availabilityLabelForSpawn(spawn) ? ` ${availabilityLabelForSpawn(spawn)}` : ""}`,
+    `${spawn.display_name} ${areaDetailValue(spawn) || mapRegionForSpawn(spawn) || regionDetailValue(spawn)} ${formatCoordinate(spawn.x)} ${formatCoordinate(spawn.y)}${spawn.is_underground ? " underground" : ""}${availabilityLabelForSpawn(spawn) ? ` ${availabilityLabelForSpawn(spawn)}` : ""}`,
   );
 
   const icon = makeIcon("pin-icon", item.icon);
@@ -3830,7 +3918,7 @@ function createMarkerPin(entry) {
   pinBody.className = "pin-body";
   const label = document.createElement("span");
   label.className = "pin-label";
-  const areaLabel = spawn.area_name || spawn.region_name;
+  const areaLabel = areaDetailValue(spawn) || mapRegionForSpawn(spawn) || regionDetailValue(spawn);
   const labelName = areaLabel ? `${spawn.display_name} (${areaLabel})` : spawn.display_name;
   const availabilityLabel = availabilityLabelForSpawn(spawn);
   label.textContent = `${labelName} ${Math.round(spawn.x)}, ${Math.round(spawn.y)}${availabilityLabel ? ` - ${availabilityLabel}` : ""}`;
@@ -3957,7 +4045,7 @@ function updateCanvasHover(event) {
 
   const rect = els.mapViewport.getBoundingClientRect();
   const { spawn } = hit;
-  const areaLabel = spawn.area_name || spawn.region_name;
+  const areaLabel = areaDetailValue(spawn) || mapRegionForSpawn(spawn) || regionDetailValue(spawn);
   const labelName = areaLabel ? `${spawn.display_name} (${areaLabel})` : spawn.display_name;
   const availabilityLabel = availabilityLabelForSpawn(spawn);
   els.pinTooltip.textContent = `${labelName} ${Math.round(spawn.x)}, ${Math.round(spawn.y)}${availabilityLabel ? ` - ${availabilityLabel}` : ""}`;
@@ -4141,7 +4229,7 @@ function renderSelectionDetail(detail, spawn, item) {
   small.className = "selection-subtitle";
   const subtitle = [
     spawn.form_label,
-    areaDetailValue(spawn) || mapLabelForSpawn(spawn) || markerTypeLabel(spawn.marker_type),
+    areaDetailValue(spawn) || mapRegionForSpawn(spawn) || markerTypeLabel(spawn.marker_type),
   ].filter(Boolean).join(" - ");
   if (subtitle) {
     const subtitleText = document.createElement("span");
@@ -4165,23 +4253,18 @@ function renderSelectionDetail(detail, spawn, item) {
   grid.className = "detail-grid";
   const typeLabel = spawn.display_type_label || item.display_type_label || markerTypeLabel(spawn.marker_type);
   const trackable = isTrackableOverworldItem(spawn, item);
-  const availabilityLabel = availabilityLabelForSpawn(spawn);
+  const areaValue = areaDetailValue(spawn);
+  const formValue = spawn.form_label || item.form_label;
+  const regionValue = regionDetailValue(spawn);
   const rows = [
     ["Type", typeLabel],
-    availabilityLabel ? ["Availability", availabilityLabel] : null,
-    ["Reward", spawn.reward_label || item.reward_label],
-    trackable ? ["Respawn", `${respawnEvidenceLabel(spawn)}: ${respawnLabelForSpawn(spawn, item)}`] : null,
+    formValue ? ["Form", formValue] : null,
     ["X", formatCoordinate(spawn.x), formatCoordinate(spawn.x)],
     ["Y", formatCoordinate(spawn.y), formatCoordinate(spawn.y)],
     ["Height", formatNumber(spawn.height_y, 2)],
+    areaValue ? ["Area", areaValue] : null,
+    regionValue ? ["Region", regionValue] : null,
   ].filter((row) => row && row[1]);
-  const areaValue = areaDetailValue(spawn);
-  if (areaValue) rows.push(["Area", areaValue]);
-  if (spawn.form_label || item.form_label) rows.push(["Form", spawn.form_label || item.form_label]);
-  const regionValue = spawn.region_name || mapLabelForSpawn(spawn);
-  if (regionValue && regionValue !== areaValue && !areaValue.includes(regionValue)) {
-    rows.push(["Region", regionValue]);
-  }
   rows.forEach(([label, value, copyValue]) => {
     const left = document.createElement("span");
     left.textContent = label;
