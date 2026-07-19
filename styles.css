@@ -1610,34 +1610,6 @@ html[data-theme="pawney"] .sidebar {
   display: none;
 }
 
-.egg-subfilter-tabs {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
-  margin-bottom: 1px;
-}
-
-.egg-subfilter-tab {
-  min-width: 0;
-  min-height: 34px;
-  border-color: rgba(80, 96, 103, 0.9);
-  background: rgba(var(--background-rgb), 0.66);
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.egg-subfilter-tab[aria-pressed="true"] {
-  border-color: rgba(167, 128, 226, 0.92);
-  background: rgba(167, 128, 226, 0.16);
-  color: #f1e8ff;
-}
-
-.egg-subfilter-tab:disabled {
-  cursor: default;
-  opacity: 0.4;
-}
-
 .item-row {
   position: relative;
   display: grid;
@@ -1823,12 +1795,14 @@ html[data-theme="pawney"] .sidebar {
   border-color: rgba(var(--accent-rgb), 0.5);
 }
 
-.item-row.elite-egg {
+.item-row.elite-egg,
+.map-group-row.elite-egg {
   border-color: rgba(214, 106, 240, 0.34);
   background: rgba(214, 106, 240, 0.08);
 }
 
-.item-row.alpha-egg {
+.item-row.alpha-egg,
+.map-group-row.alpha-egg {
   border-color: rgba(123, 190, 255, 0.42);
   background: rgba(123, 190, 255, 0.08);
 }

@@ -2,7 +2,7 @@ const DATA_URL = "./data/map_site_data.json?v=20260719-grouped-map-menus-v001";
 const CHECKLIST_URL = "./data/checklist_data.json?v=20260719-localization-v001";
 const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260719-public-catalog-v002";
 const ANIILOG_DATA_URL = "./data/aniilog_data.json?v=20260719-localization-v003";
-const APP_VERSION = "v0.3.89";
+const APP_VERSION = "v0.3.90";
 const GITHUB_COMMITS_URL = "https://api.github.com/repos/donneeee/MinMax-Aniipedia/commits?sha=main&per_page=30";
 const CHANGELOG_INTERNAL_MARKER_RE = /\[(?:skip changelog|internal)\]/i;
 const CHANGELOG_PUBLIC_ENTRY_LIMIT = 12;
@@ -208,7 +208,6 @@ const state = {
   renderedMapGroups: new Map(),
   activeMapId: REQUESTED_MAP_ID || "country-of-time",
   activeLayer: "items",
-  eggSubfilter: "all",
   search: "",
   scale: 1,
   panX: 0,
@@ -575,13 +574,6 @@ function eggKindForItem(item) {
   if (item.egg_kind === "elite" || item.is_elite_egg) return "elite";
   if (item.egg_kind === "alpha" || item.is_alpha_egg) return "alpha";
   return "";
-}
-
-function itemMatchesActiveEggSubfilter(item) {
-  return !isEggItem(item)
-    || state.activeLayer !== "eggs"
-    || state.eggSubfilter === "all"
-    || eggKindForItem(item) === state.eggSubfilter;
 }
 
 function stripFormSuffix(value) {
@@ -5867,9 +5859,7 @@ function visibleSpawnEntries() {
 
 function updateFilterCount() {
   if (!els.filterCount || !state.data) return;
-  const activeItems = activeMapItems().filter((item) => (
-    item.layer_id === state.activeLayer && itemMatchesActiveEggSubfilter(item)
-  ));
+  const activeItems = activeMapItems().filter((item) => item.layer_id === state.activeLayer);
   const selectedCount = activeItems.filter((item) => state.enabled.has(item.item_id)).length;
   els.filterCount.textContent = `${selectedCount} / ${activeItems.length}`;
 }
@@ -6094,15 +6084,15 @@ function mapItemsFullySelected(items) {
   });
 }
 
-function renderMapCollectionGroup(section, { groupKey, label, items }) {
+function renderMapCollectionGroup(section, { groupKey, label, items, className = "" }) {
   if (!items.length) return;
   const expanded = state.expandedMapGroups.has(groupKey);
   const group = document.createElement("section");
-  group.className = "map-item-group";
+  group.className = ["map-item-group", className].filter(Boolean).join(" ");
   group.dataset.mapGroupKey = groupKey;
 
   const parent = document.createElement("div");
-  parent.className = "map-group-row";
+  parent.className = ["map-group-row", className].filter(Boolean).join(" ");
   parent.dataset.mapGroupKey = groupKey;
   parent.tabIndex = 0;
   parent.setAttribute("role", "button");
@@ -6176,6 +6166,23 @@ const TELEPORT_GROUPS = [
   { id: "vein_abundance", label: "Vein Abundance Sites" },
 ];
 
+const EGG_GROUPS = [
+  { id: "elite", label: "Elite Eggs", className: "elite-egg" },
+  { id: "alpha", label: "Alpha Eggs", className: "alpha-egg" },
+];
+
+function renderEggGroups(section, layerItems) {
+  EGG_GROUPS.forEach(({ id, label, className }) => {
+    const items = layerItems.filter((item) => eggKindForItem(item) === id);
+    renderMapCollectionGroup(section, {
+      groupKey: `egg-group:${id}`,
+      label,
+      items,
+      className,
+    });
+  });
+}
+
 function renderTeleportGroups(section, layerItems) {
   TELEPORT_GROUPS.forEach(({ id, label }) => {
     const items = layerItems.filter((item) => item.teleport_type === id);
@@ -6246,7 +6253,7 @@ function refreshVisibility() {
 
   for (const row of els.itemList.querySelectorAll(".item-row")) {
     const item = state.data.itemsById.get(row.dataset.itemId);
-    row.hidden = !itemMatches(item) || !itemMatchesActiveEggSubfilter(item);
+    row.hidden = !itemMatches(item);
   }
   refreshGroupedItemControls();
 
@@ -6256,13 +6263,6 @@ function refreshVisibility() {
       row.dataset.miscGroup === heading.dataset.miscGroup && !row.hidden
     ));
     heading.hidden = !visibleGroupRows;
-  }
-
-  for (const button of els.itemList.querySelectorAll(".egg-subfilter-tab")) {
-    button.setAttribute(
-      "aria-pressed",
-      String(state.eggSubfilter === button.dataset.eggKind),
-    );
   }
 
   for (const section of els.itemList.querySelectorAll(".layer-panel")) {
@@ -6323,14 +6323,12 @@ function renderItems() {
     tab.addEventListener("click", () => {
       clearLocatedSpawn();
       state.activeLayer = layer.id;
-      if (layer.id === "eggs") state.eggSubfilter = "all";
       refreshVisibility();
     });
     tab.addEventListener("dblclick", (event) => {
       event.preventDefault();
       clearLocatedSpawn();
       state.activeLayer = layer.id;
-      if (layer.id === "eggs") state.eggSubfilter = "all";
       const selectableItems = layerItems.filter((item) => itemMatches(item));
       selectableItems.forEach((item) => setItemSelection(item.item_id, true));
       refreshVisibility();
@@ -6349,53 +6347,9 @@ function renderItems() {
     section.hidden = layer.id !== state.activeLayer;
 
     if (layer.id === "eggs") {
-      const subfilters = document.createElement("div");
-      subfilters.className = "egg-subfilter-tabs";
-      subfilters.setAttribute("role", "group");
-      subfilters.setAttribute("aria-label", "Egg type filters");
-
-      [
-        { id: "elite", label: "Elite Eggs" },
-        { id: "alpha", label: "Alpha Eggs" },
-      ].forEach((subfilter) => {
-        const subtypeItems = layerItems.filter((item) => eggKindForItem(item) === subfilter.id);
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "egg-subfilter-tab";
-        button.dataset.eggKind = subfilter.id;
-        button.textContent = subfilter.label;
-        button.disabled = subtypeItems.length === 0;
-        button.setAttribute("aria-pressed", String(state.eggSubfilter === subfilter.id));
-        button.title = "Double-click to show only this egg type";
-        button.addEventListener("mousedown", preventControlFocus);
-        button.addEventListener("click", () => {
-          clearLocatedSpawn();
-          state.activeLayer = "eggs";
-          state.eggSubfilter = subfilter.id;
-          refreshVisibility();
-        });
-        button.addEventListener("dblclick", (event) => {
-          event.preventDefault();
-          clearLocatedSpawn();
-          state.activeLayer = "eggs";
-          state.eggSubfilter = subfilter.id;
-          const allSelected = subtypeItems.length > 0
-            && subtypeItems.every((item) => {
-              const selection = itemSelectionState(item.item_id);
-              return selection.total > 0 && selection.selected === selection.total;
-            });
-          layerItems.forEach((item) => {
-            if (eggKindForItem(item) !== subfilter.id) {
-              setItemSelection(item.item_id, false);
-            }
-          });
-          subtypeItems.forEach((item) => setItemSelection(item.item_id, !allSelected));
-          refreshVisibility();
-        });
-        subfilters.append(button);
-      });
-
-      section.append(subfilters);
+      renderEggGroups(section, layerItems);
+      els.itemList.append(section);
+      return;
     }
 
     if (layer.id === "teleports") {

@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const ASSET_VERSION = "20260719-localization-v013";
+  const ASSET_VERSION = "20260719-localization-v014";
   const SUPPORTED_LANGUAGES = Object.freeze({
     en: { label: "English", htmlLang: "en" },
     "zh-CN": { label: "简体中文", htmlLang: "zh-CN" },
@@ -115,6 +115,8 @@
     ["Aniimo, form, skill, or effect", "Aniimo、形态、技能或效果", "Aniimo、形態、スキル、効果", "Aniimo, 형태, 스킬 또는 효과"],
     ["Items", "道具", "アイテム", "아이템"],
     ["Eggs", "蛋", "タマゴ", "알"],
+    ["Elite Eggs", "卓越伊莫蛋", "エクセレントアニモのタマゴ", "탁월 애니모 알"],
+    ["Alpha Eggs", "头目伊莫蛋", "アルファアニモのタマゴ", "엘리트 애니모 알"],
     ["Teleports", "传送点", "テレポート", "순간이동"],
     ["Lumens", "流明", "ルーメン", "루멘"],
     ["Misc", "其他", "その他", "기타"],
