@@ -2,7 +2,7 @@ const DATA_URL = "./data/map_site_data.json?v=20260719-grouped-map-menus-v001";
 const CHECKLIST_URL = "./data/checklist_data.json?v=20260719-localization-v001";
 const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260719-public-catalog-v002";
 const ANIILOG_DATA_URL = "./data/aniilog_data.json?v=20260719-localization-v003";
-const APP_VERSION = "v0.3.91";
+const APP_VERSION = "v0.3.92";
 const GITHUB_COMMITS_URL = "https://api.github.com/repos/donneeee/MinMax-Aniipedia/commits?sha=main&per_page=30";
 const CHANGELOG_INTERNAL_MARKER_RE = /\[(?:skip changelog|internal)\]/i;
 const CHANGELOG_PUBLIC_ENTRY_LIMIT = 12;
@@ -5866,6 +5866,9 @@ function updateFilterCount() {
 }
 
 function itemRowSubtitle(item) {
+  if (item.teleport_type === "nurture" || item.teleport_type === "vein_abundance") {
+    return item.display_type_label || item.display_name;
+  }
   const parts = item.subtitle
     ? [item.subtitle]
     : item.is_aniimo
@@ -5874,6 +5877,18 @@ function itemRowSubtitle(item) {
         ? [item.region_name || item.area_name || item.display_type_label]
         : [item.display_type_label, item.region_name];
   return parts.filter(Boolean).join(" - ");
+}
+
+function itemRowName(item) {
+  if (item.is_aniimo) return aniimoListName(item);
+  if (item.teleport_type === "nurture" || item.teleport_type === "vein_abundance") {
+    const spawn = activeMapSpawnEntries(item.item_id)[0]?.spawn;
+    return areaDetailValue(spawn)
+      || item.area_names?.find(Boolean)
+      || item.region_name
+      || item.display_name;
+  }
+  return item.display_name;
 }
 
 function uniqueIconSources(values) {
@@ -5980,7 +5995,7 @@ function createMapItemRow(item, { child = false, expandable = false } = {}) {
   const text = document.createElement("span");
   text.className = "item-text";
   const strong = document.createElement("strong");
-  strong.textContent = item.is_aniimo ? aniimoListName(item) : item.display_name;
+  strong.textContent = itemRowName(item);
   const small = document.createElement("small");
   small.textContent = itemRowSubtitle(item);
   strong.title = strong.textContent;
