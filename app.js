@@ -1,8 +1,8 @@
-const DATA_URL = "./data/map_site_data.json?v=20260719-grouped-map-menus-v001";
-const CHECKLIST_URL = "./data/checklist_data.json?v=20260719-localization-v001";
+const DATA_URL = "./data/map_site_data.json?v=20260719-compact-lumen-source-labels-v001";
+const CHECKLIST_URL = "./data/checklist_data.json?v=20260719-delist-phantom-alphas-v001";
 const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260719-public-catalog-v002";
 const ANIILOG_DATA_URL = "./data/aniilog_data.json?v=20260719-localization-v003";
-const APP_VERSION = "v0.3.94";
+const APP_VERSION = "v0.3.95";
 const GITHUB_COMMITS_URL = "https://api.github.com/repos/donneeee/MinMax-Aniipedia/commits?sha=main&per_page=30";
 const CHANGELOG_INTERNAL_MARKER_RE = /\[(?:skip changelog|internal)\]/i;
 const CHANGELOG_PUBLIC_ENTRY_LIMIT = 12;
@@ -545,7 +545,7 @@ function markerTypeLabel(type) {
   if (type === "teleport_nurture") return "Nurture";
   if (type === "teleport_vein_abundance") return "Vein Abundance";
   if (type === "lumin_amber") return "Lumin Amber";
-  if (type === "lumin_marking") return "Lumin Marking";
+  if (type === "lumin_marking") return "Lumen Marking";
   if (type === "quest_lumen_seed") return "Boss Clear";
   if (type === "lumin_event") return "Event Ember";
   if (type === "underground_entrance") return "Underground Entrance";
@@ -6039,18 +6039,71 @@ function createMapItemRow(item, { child = false, expandable = false } = {}) {
   return row;
 }
 
+function duplicateSpawnSequence(spawn, siblings = [], siblingIndex = 0) {
+  const matchingNames = siblings.filter((entry) => entry.spawn.display_name === spawn.display_name);
+  if (matchingNames.length < 2) return "";
+  const duplicateIndex = matchingNames.findIndex((entry) => entry.index === siblings[siblingIndex]?.index);
+  return String(Math.max(0, duplicateIndex) + 1);
+}
+
+function localizedSpawnTitle(spawn) {
+  return window.AniipediaI18n.translateUid(spawn.display_name_uid, String(spawn.display_name || ""));
+}
+
+function localizedTitleSuffix(title) {
+  const text = String(title || "").trim();
+  const punctuated = text.match(/^[^:\uFF1A\u00B7\u30FB\u2022]+[:\uFF1A\u00B7\u30FB\u2022]\s*(.+)$/);
+  if (punctuated) return punctuated[1].trim();
+  const dashed = text.match(/^[^-\u2013\u2014]+\s+[-\u2013\u2014]\s+(.+)$/);
+  return dashed ? dashed[1].trim() : "";
+}
+
+function compactBossClearTitle(spawn) {
+  const rawTitle = String(spawn.display_name || "").replace(/^Boss Clear:\s*/i, "");
+  const match = rawTitle.match(/^(?:(Alpha|Omega)\s+Aniimo|Aniimo\s+(Alpha|Omega)):\s*(.+)$/i);
+  if (!match) return window.AniipediaI18n.translate(rawTitle);
+  const tier = match[1] || match[2];
+  return `${window.AniipediaI18n.translate(tier)} ${window.AniipediaI18n.translate(match[3])}`;
+}
+
+function luminEventFamilyLabel(spawn) {
+  const sourceType = String(spawn.reward_source_type || "").toLowerCase();
+  return window.AniipediaI18n.translate(
+    sourceType === "runaway_amber" ? "Runaway Amber" : "Lumin Collection",
+  );
+}
+
 function spawnChildDisplayParts(spawn, siblings = [], siblingIndex = 0) {
+  const sequence = duplicateSpawnSequence(spawn, siblings, siblingIndex);
+  if (spawn.marker_type === "quest_lumen_seed") {
+    return { name: compactBossClearTitle(spawn), sequence, typeLabel: "" };
+  }
+  if (spawn.marker_type === "lumin_event") {
+    const localizedTitle = localizedSpawnTitle(spawn);
+    const suffix = localizedTitleSuffix(localizedTitle);
+    return {
+      name: suffix || localizedTitle,
+      sequence,
+      typeLabel: suffix ? luminEventFamilyLabel(spawn) : "",
+    };
+  }
+  if (spawn.marker_type === "lumin_marking") {
+    const localizedTitle = localizedSpawnTitle(spawn);
+    const suffix = localizedTitleSuffix(localizedTitle);
+    return {
+      name: suffix || localizedTitle,
+      sequence,
+      typeLabel: suffix ? window.AniipediaI18n.translate("Lumen Marking") : "",
+    };
+  }
   if (spawn.marker_type !== "document_pickup") {
-    const matchingNames = siblings.filter((entry) => entry.spawn.display_name === spawn.display_name);
-    if (matchingNames.length < 2) return { name: spawn.display_name, sequence: "" };
-    const duplicateIndex = matchingNames.findIndex((entry) => entry.index === siblings[siblingIndex]?.index);
-    return { name: spawn.display_name, sequence: String(Math.max(0, duplicateIndex) + 1) };
+    return { name: localizedSpawnTitle(spawn), sequence, typeLabel: "" };
   }
   const title = String(spawn.display_name || "");
   const parenthetical = title.match(/\((?:Part\s+)?([IVX]+|\d+)\)$/i);
-  if (parenthetical) return { name: `Note ${parenthetical[1]}`, sequence: "" };
+  if (parenthetical) return { name: `Note ${parenthetical[1]}`, sequence: "", typeLabel: "" };
   const trailing = title.match(/(?:Research|Tale)\s+([IVX]+|\d+)$/i);
-  return { name: trailing ? `Note ${trailing[1]}` : title, sequence: "" };
+  return { name: trailing ? `Note ${trailing[1]}` : title, sequence: "", typeLabel: "" };
 }
 
 function createSpawnChildRow(entry, siblings = [], siblingIndex = 0) {
@@ -6082,7 +6135,7 @@ function createSpawnChildRow(entry, siblings = [], siblingIndex = 0) {
   strong.title = spawn.display_name;
   const small = document.createElement("small");
   const area = areaDetailValue(spawn) || mapRegionForSpawn(spawn);
-  small.textContent = [area, `${formatCoordinate(spawn.x)}, ${formatCoordinate(spawn.y)}`].filter(Boolean).join(" - ");
+  small.textContent = [display.typeLabel, area].filter(Boolean).join(" \u2022 ");
   small.title = `${spawn.display_name} - ${small.textContent}`;
   text.append(strong, small);
   row.append(icon, text);

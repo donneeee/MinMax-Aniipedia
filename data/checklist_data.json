@@ -20,12 +20,12 @@
     "lumin_markings": 22,
     "sanctum_lumen_seed_sources": 17,
     "sanctum_lumen_seed_rewards": 17,
-    "boss_clear_sources": 23,
-    "boss_clear_lumen_rewards": 27,
+    "boss_clear_sources": 21,
+    "boss_clear_lumen_rewards": 25,
     "event_ember_sources": 35,
     "event_ember_rewards": 35,
-    "lumen_checklist_sources": 208,
-    "lumen_reward_total": 212
+    "lumen_checklist_sources": 206,
+    "lumen_reward_total": 210
   },
   "entries": [
     {
@@ -11940,7 +11940,7 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "lumin_marking",
-      "source_label": "Lumin Marking: Veiled Truth",
+      "source_label": "Lumen Marking: Veiled Truth",
       "map_label": "Breezy Plains",
       "map_id": "country-of-time",
       "scene_id": "3000",
@@ -11968,7 +11968,7 @@
         "source_type": "lumin_marking",
         "marker_type": "lumin_marking",
         "public_source_key": "",
-        "source_name": "Lumin Marking: Veiled Truth"
+        "source_name": "Lumen Marking: Veiled Truth"
       }
     },
     {
@@ -11977,7 +11977,7 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "lumin_marking",
-      "source_label": "Lumin Marking: Crumbling Stonewalls",
+      "source_label": "Lumen Marking: Crumbling Stonewalls",
       "map_label": "Breezy Plains",
       "map_id": "country-of-time",
       "scene_id": "3000",
@@ -12005,7 +12005,7 @@
         "source_type": "lumin_marking",
         "marker_type": "lumin_marking",
         "public_source_key": "",
-        "source_name": "Lumin Marking: Crumbling Stonewalls"
+        "source_name": "Lumen Marking: Crumbling Stonewalls"
       }
     },
     {
@@ -12014,7 +12014,7 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "lumin_marking",
-      "source_label": "Lumin Marking: Frozen Stone",
+      "source_label": "Lumen Marking: Frozen Stone",
       "map_label": "Breezy Plains",
       "map_id": "country-of-time",
       "scene_id": "3000",
@@ -12042,7 +12042,7 @@
         "source_type": "lumin_marking",
         "marker_type": "lumin_marking",
         "public_source_key": "",
-        "source_name": "Lumin Marking: Frozen Stone"
+        "source_name": "Lumen Marking: Frozen Stone"
       }
     },
     {
@@ -12051,7 +12051,7 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "lumin_marking",
-      "source_label": "Lumin Marking: Cliff Mark",
+      "source_label": "Lumen Marking: Cliff Mark",
       "map_label": "Breezy Plains",
       "map_id": "country-of-time",
       "scene_id": "3000",
@@ -12079,7 +12079,7 @@
         "source_type": "lumin_marking",
         "marker_type": "lumin_marking",
         "public_source_key": "",
-        "source_name": "Lumin Marking: Cliff Mark"
+        "source_name": "Lumen Marking: Cliff Mark"
       }
     },
     {
@@ -12088,7 +12088,7 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "lumin_marking",
-      "source_label": "Lumin Marking: Cliff Vista",
+      "source_label": "Lumen Marking: Cliff Vista",
       "map_label": "Breezy Plains",
       "map_id": "country-of-time",
       "scene_id": "3000",
@@ -12116,7 +12116,7 @@
         "source_type": "lumin_marking",
         "marker_type": "lumin_marking",
         "public_source_key": "",
-        "source_name": "Lumin Marking: Cliff Vista"
+        "source_name": "Lumen Marking: Cliff Vista"
       }
     },
     {
@@ -12125,7 +12125,7 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "lumin_marking",
-      "source_label": "Lumin Marking: Pillar Puzzle",
+      "source_label": "Lumen Marking: Pillar Puzzle",
       "map_label": "Breezy Plains",
       "map_id": "country-of-time",
       "scene_id": "3000",
@@ -12153,7 +12153,7 @@
         "source_type": "lumin_marking",
         "marker_type": "lumin_marking",
         "public_source_key": "",
-        "source_name": "Lumin Marking: Pillar Puzzle"
+        "source_name": "Lumen Marking: Pillar Puzzle"
       }
     },
     {
@@ -12162,7 +12162,7 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "lumin_marking",
-      "source_label": "Lumin Marking: Keyhole Sight",
+      "source_label": "Lumen Marking: Keyhole Sight",
       "map_label": "Breezy Plains",
       "map_id": "country-of-time",
       "scene_id": "3000",
@@ -12190,7 +12190,7 @@
         "source_type": "lumin_marking",
         "marker_type": "lumin_marking",
         "public_source_key": "",
-        "source_name": "Lumin Marking: Keyhole Sight"
+        "source_name": "Lumen Marking: Keyhole Sight"
       }
     },
     {
@@ -12199,7 +12199,7 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "lumin_marking",
-      "source_label": "Lumin Marking: Fragment Restoration",
+      "source_label": "Lumen Marking: Fragment Restoration",
       "map_label": "Breezy Plains",
       "map_id": "country-of-time",
       "scene_id": "3000",
@@ -12227,7 +12227,7 @@
         "source_type": "lumin_marking",
         "marker_type": "lumin_marking",
         "public_source_key": "",
-        "source_name": "Lumin Marking: Fragment Restoration"
+        "source_name": "Lumen Marking: Fragment Restoration"
       }
     },
     {
@@ -12236,7 +12236,7 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "lumin_marking",
-      "source_label": "Lumin Marking: Whale Bone",
+      "source_label": "Lumen Marking: Whale Bone",
       "map_label": "Breezy Plains",
       "map_id": "country-of-time",
       "scene_id": "3000",
@@ -12264,7 +12264,7 @@
         "source_type": "lumin_marking",
         "marker_type": "lumin_marking",
         "public_source_key": "",
-        "source_name": "Lumin Marking: Whale Bone"
+        "source_name": "Lumen Marking: Whale Bone"
       }
     },
     {
@@ -12273,7 +12273,7 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "lumin_marking",
-      "source_label": "Lumin Marking: Nest of Stars",
+      "source_label": "Lumen Marking: Nest of Stars",
       "map_label": "Breezy Plains",
       "map_id": "country-of-time",
       "scene_id": "3000",
@@ -12301,7 +12301,7 @@
         "source_type": "lumin_marking",
         "marker_type": "lumin_marking",
         "public_source_key": "",
-        "source_name": "Lumin Marking: Nest of Stars"
+        "source_name": "Lumen Marking: Nest of Stars"
       }
     },
     {
@@ -12310,7 +12310,7 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "lumin_marking",
-      "source_label": "Lumin Marking: Shaded Stone",
+      "source_label": "Lumen Marking: Shaded Stone",
       "map_label": "Breezy Plains",
       "map_id": "country-of-time",
       "scene_id": "3000",
@@ -12338,7 +12338,7 @@
         "source_type": "lumin_marking",
         "marker_type": "lumin_marking",
         "public_source_key": "",
-        "source_name": "Lumin Marking: Shaded Stone"
+        "source_name": "Lumen Marking: Shaded Stone"
       }
     },
     {
@@ -12347,7 +12347,7 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "lumin_marking",
-      "source_label": "Lumin Marking: Gate of Ruins",
+      "source_label": "Lumen Marking: Gate of Ruins",
       "map_label": "Breezy Plains",
       "map_id": "country-of-time",
       "scene_id": "3000",
@@ -12375,7 +12375,7 @@
         "source_type": "lumin_marking",
         "marker_type": "lumin_marking",
         "public_source_key": "",
-        "source_name": "Lumin Marking: Gate of Ruins"
+        "source_name": "Lumen Marking: Gate of Ruins"
       }
     },
     {
@@ -12384,7 +12384,7 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "lumin_marking",
-      "source_label": "Lumin Marking: Frostlit Trace",
+      "source_label": "Lumen Marking: Frostlit Trace",
       "map_label": "Breezy Plains",
       "map_id": "country-of-time",
       "scene_id": "3000",
@@ -12412,7 +12412,7 @@
         "source_type": "lumin_marking",
         "marker_type": "lumin_marking",
         "public_source_key": "",
-        "source_name": "Lumin Marking: Frostlit Trace"
+        "source_name": "Lumen Marking: Frostlit Trace"
       }
     },
     {
@@ -12421,7 +12421,7 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "lumin_marking",
-      "source_label": "Lumin Marking: Northern Woodland of the Flower Sea",
+      "source_label": "Lumen Marking: Northern Woodland of the Flower Sea",
       "map_label": "Breezy Plains",
       "map_id": "country-of-time",
       "scene_id": "3000",
@@ -12449,7 +12449,7 @@
         "source_type": "lumin_marking",
         "marker_type": "lumin_marking",
         "public_source_key": "",
-        "source_name": "Lumin Marking: Northern Woodland of the Flower Sea"
+        "source_name": "Lumen Marking: Northern Woodland of the Flower Sea"
       }
     },
     {
@@ -12458,7 +12458,7 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "lumin_marking",
-      "source_label": "Lumin Marking: Dragon’s Vision",
+      "source_label": "Lumen Marking: Dragon’s Vision",
       "map_label": "Breezy Plains",
       "map_id": "country-of-time",
       "scene_id": "3000",
@@ -12486,7 +12486,7 @@
         "source_type": "lumin_marking",
         "marker_type": "lumin_marking",
         "public_source_key": "",
-        "source_name": "Lumin Marking: Dragon’s Vision"
+        "source_name": "Lumen Marking: Dragon’s Vision"
       }
     },
     {
@@ -12495,7 +12495,7 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "lumin_marking",
-      "source_label": "Lumin Marking: Ruins of Flowers",
+      "source_label": "Lumen Marking: Ruins of Flowers",
       "map_label": "Breezy Plains",
       "map_id": "country-of-time",
       "scene_id": "3000",
@@ -12523,7 +12523,7 @@
         "source_type": "lumin_marking",
         "marker_type": "lumin_marking",
         "public_source_key": "",
-        "source_name": "Lumin Marking: Ruins of Flowers"
+        "source_name": "Lumen Marking: Ruins of Flowers"
       }
     },
     {
@@ -12532,7 +12532,7 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "lumin_marking",
-      "source_label": "Lumin Amber: Floral Moment",
+      "source_label": "Lumen Amber: Floral Moment",
       "map_label": "Breezy Plains",
       "map_id": "country-of-time",
       "scene_id": "3000",
@@ -12560,7 +12560,7 @@
         "source_type": "lumin_marking",
         "marker_type": "lumin_marking",
         "public_source_key": "",
-        "source_name": "Lumin Amber: Floral Moment"
+        "source_name": "Lumen Amber: Floral Moment"
       }
     },
     {
@@ -12569,7 +12569,7 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "lumin_marking",
-      "source_label": "Lumin Marking: Chirpi Songs Over the Fjord",
+      "source_label": "Lumen Marking: Chirpi Songs Over the Fjord",
       "map_label": "Breezy Plains",
       "map_id": "country-of-time",
       "scene_id": "3000",
@@ -12597,7 +12597,7 @@
         "source_type": "lumin_marking",
         "marker_type": "lumin_marking",
         "public_source_key": "",
-        "source_name": "Lumin Marking: Chirpi Songs Over the Fjord"
+        "source_name": "Lumen Marking: Chirpi Songs Over the Fjord"
       }
     },
     {
@@ -12606,7 +12606,7 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "lumin_marking",
-      "source_label": "Lumin Marking: Green Shade",
+      "source_label": "Lumen Marking: Green Shade",
       "map_label": "Breezy Plains",
       "map_id": "country-of-time",
       "scene_id": "3000",
@@ -12634,7 +12634,7 @@
         "source_type": "lumin_marking",
         "marker_type": "lumin_marking",
         "public_source_key": "",
-        "source_name": "Lumin Marking: Green Shade"
+        "source_name": "Lumen Marking: Green Shade"
       }
     },
     {
@@ -12643,7 +12643,7 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "lumin_marking",
-      "source_label": "Lumin Marking: Petal Shores",
+      "source_label": "Lumen Marking: Petal Shores",
       "map_label": "Breezy Plains",
       "map_id": "country-of-time",
       "scene_id": "3000",
@@ -12671,7 +12671,7 @@
         "source_type": "lumin_marking",
         "marker_type": "lumin_marking",
         "public_source_key": "",
-        "source_name": "Lumin Marking: Petal Shores"
+        "source_name": "Lumen Marking: Petal Shores"
       }
     },
     {
@@ -12680,7 +12680,7 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "lumin_marking",
-      "source_label": "Lumin Marking: Lake-Center Bubble",
+      "source_label": "Lumen Marking: Lake-Center Bubble",
       "map_label": "Whisperwake Isles",
       "map_id": "whisperwake-isles",
       "scene_id": "3003",
@@ -12708,7 +12708,7 @@
         "source_type": "lumin_marking",
         "marker_type": "lumin_marking",
         "public_source_key": "",
-        "source_name": "Lumin Marking: Lake-Center Bubble"
+        "source_name": "Lumen Marking: Lake-Center Bubble"
       }
     },
     {
@@ -12717,7 +12717,7 @@
       "kind": "lumin_amber",
       "name": "Lumin Amber",
       "source_type": "lumin_marking",
-      "source_label": "Lumin Marking: Above the White Cliffs",
+      "source_label": "Lumen Marking: Above the White Cliffs",
       "map_label": "Whisperwake Isles",
       "map_id": "whisperwake-isles",
       "scene_id": "3003",
@@ -12745,7 +12745,7 @@
         "source_type": "lumin_marking",
         "marker_type": "lumin_marking",
         "public_source_key": "",
-        "source_name": "Lumin Marking: Above the White Cliffs"
+        "source_name": "Lumen Marking: Above the White Cliffs"
       }
     },
     {
@@ -13375,106 +13375,6 @@
         "marker_type": "teleport_sanctum",
         "public_source_key": "",
         "source_name": "Sanctum: Shatterstone"
-      }
-    },
-    {
-      "id": "amber:quest:quest-lumen-2525da589ca3217fc886",
-      "category": "ambers",
-      "kind": "lumin_amber",
-      "name": "Alpha Aniimo: Glacy",
-      "source_type": "quest",
-      "source_label": "Boss clear reward: 1 Lumin Amber (map location unavailable)",
-      "map_label": "",
-      "map_id": "",
-      "scene_id": "",
-      "area_name": "",
-      "coordinate_key": "",
-      "x": "",
-      "y": "",
-      "icon": "assets/icons/amber_quest_lumen_seed_alpha__UI_Event_SchoolGuide_Alpha.png",
-      "reward_amount": 1,
-      "counts_toward_total": true,
-      "completion_states": [
-        {
-          "id": "amber:quest:quest-lumen-2525da589ca3217fc886:collected",
-          "label": "Collected",
-          "quantity": 1
-        }
-      ],
-      "sort_key": [
-        3,
-        "",
-        "",
-        "quest-lumen-2525da589ca3217fc886"
-      ],
-      "source": {
-        "public_source_key": "quest-lumen-2525da589ca3217fc886",
-        "display_name": "Alpha Aniimo: Glacy",
-        "source_type": "boss_clear",
-        "source_label": "Boss clear reward",
-        "reward_amount": "1",
-        "located": false,
-        "map_id": "",
-        "scene_id": "",
-        "coordinate_key": "",
-        "x": "",
-        "y": "",
-        "area_name": "",
-        "large_area_name": "",
-        "level_area_name": "",
-        "completion_id": "amber:quest:quest-lumen-2525da589ca3217fc886:collected",
-        "source_name": "Alpha Aniimo: Glacy",
-        "name_origin": "level_reward_linked_data_unlocated_source"
-      }
-    },
-    {
-      "id": "amber:quest:quest-lumen-594aeae4630c4061899a",
-      "category": "ambers",
-      "kind": "lumin_amber",
-      "name": "Alpha Aniimo: Helgon",
-      "source_type": "quest",
-      "source_label": "Boss clear reward: 1 Lumin Amber (map location unavailable)",
-      "map_label": "",
-      "map_id": "",
-      "scene_id": "",
-      "area_name": "",
-      "coordinate_key": "",
-      "x": "",
-      "y": "",
-      "icon": "assets/icons/amber_quest_lumen_seed_alpha__UI_Event_SchoolGuide_Alpha.png",
-      "reward_amount": 1,
-      "counts_toward_total": true,
-      "completion_states": [
-        {
-          "id": "amber:quest:quest-lumen-594aeae4630c4061899a:collected",
-          "label": "Collected",
-          "quantity": 1
-        }
-      ],
-      "sort_key": [
-        3,
-        "",
-        "",
-        "quest-lumen-594aeae4630c4061899a"
-      ],
-      "source": {
-        "public_source_key": "quest-lumen-594aeae4630c4061899a",
-        "display_name": "Alpha Aniimo: Helgon",
-        "source_type": "boss_clear",
-        "source_label": "Boss clear reward",
-        "reward_amount": "1",
-        "located": false,
-        "map_id": "",
-        "scene_id": "",
-        "coordinate_key": "",
-        "x": "",
-        "y": "",
-        "area_name": "",
-        "large_area_name": "",
-        "level_area_name": "",
-        "completion_id": "amber:quest:quest-lumen-594aeae4630c4061899a:collected",
-        "source_name": "Alpha Aniimo: Helgon",
-        "name_origin": "level_reward_linked_data_unlocated_source"
       }
     },
     {
@@ -16422,6 +16322,6 @@
   ],
   "source_notes": {
     "aniimo": "Official form crosswalk records with local asset coverage, reconciled to pet_research_content_data. Internal placeholder form keys are admitted only when the official catalog identifies a published form.",
-    "ambers": "Static overworld Amber nodes, map-discovered Lumin Markings, Sanctums that award Lumen Seeds, verified Boss Clear rewards, and verified Runaway Amber or Lumin Collection event rewards. Overworld nodes retain their canonical static IDs and generated location labels."
+    "ambers": "Static overworld Amber nodes, map-discovered Lumen Markings, Sanctums that award Lumen Seeds, verified Boss Clear rewards, and verified Runaway Amber or Lumin Collection event rewards. Overworld nodes retain their canonical static IDs and generated location labels."
   }
 }

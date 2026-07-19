@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const ASSET_VERSION = "20260719-localization-v015";
+  const ASSET_VERSION = "20260719-localization-v017";
   const SUPPORTED_LANGUAGES = Object.freeze({
     en: { label: "English", htmlLang: "en" },
     "zh-CN": { label: "简体中文", htmlLang: "zh-CN" },
@@ -28,6 +28,10 @@
     ["Outposts", "前哨站", "前哨基地", "전초기지"],
     ["Nurture Sites", "培育点", "育成地点", "육성 지점"],
     ["Vein Abundance Sites", "丰饶矿脉点", "豊穣の脈地点", "풍요의 맥 지점"],
+    ["Lumin Collection", "琥珀能量收集", "アンバーエナジー集め", "앰버 에너지 수집"],
+    ["Runaway Amber", "逃脱的琥珀", "逃げたアンバー", "탈출한 앰버"],
+    ["Lumen Marking", "辉耀印记", "キラメキマーク", "광휘 인장"],
+    ["Lumen Markings", "辉耀印记", "キラメキマーク", "광휘 인장"],
     ["Sanctum: All in Sight", "地宫·一目了然", "ダンジョン・一目瞭然", "지하 궁전·명확한 시야"],
     ["Sanctum: Chasing Stormwinds", "地宫·逐电追风", "ダンジョン・疾風迅雷", "지하 궁전·번개와 바람의 질주"],
     ["Sanctum: Courageous Wit", "地宫·智行勇跃", "ダンジョン・智勇兼備", "지하 궁전·지혜로운 도약"],
@@ -499,6 +503,12 @@
     return translatePattern(source);
   }
 
+  function translateUid(uid, fallback = "") {
+    const source = String(fallback ?? "");
+    if (activeLocale === "en") return source;
+    return payload?.texts?.[String(uid ?? "")] || translate(source);
+  }
+
   function translateTextNode(node) {
     const parent = node.parentElement;
     if (!parent || parent.closest("script, style, [data-i18n-skip]")) return;
@@ -608,6 +618,7 @@
     searchAlias,
     start,
     translate,
+    translateUid,
     translateTree,
     get locale() { return activeLocale; },
   });
