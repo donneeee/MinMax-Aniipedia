@@ -2,7 +2,7 @@ const DATA_URL = "./data/map_site_data.json?v=20260719-grouped-map-menus-v001";
 const CHECKLIST_URL = "./data/checklist_data.json?v=20260719-localization-v001";
 const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260719-public-catalog-v002";
 const ANIILOG_DATA_URL = "./data/aniilog_data.json?v=20260719-localization-v003";
-const APP_VERSION = "v0.3.90";
+const APP_VERSION = "v0.3.91";
 const GITHUB_COMMITS_URL = "https://api.github.com/repos/donneeee/MinMax-Aniipedia/commits?sha=main&per_page=30";
 const CHANGELOG_INTERNAL_MARKER_RE = /\[(?:skip changelog|internal)\]/i;
 const CHANGELOG_PUBLIC_ENTRY_LIMIT = 12;
@@ -205,6 +205,7 @@ const state = {
   enabled: new Set(),
   disabledSpawnIds: new Set(),
   expandedMapGroups: new Set(),
+  collapsedMiscGroups: new Set(),
   renderedMapGroups: new Map(),
   activeMapId: REQUESTED_MAP_ID || "country-of-time",
   activeLayer: "items",
@@ -6183,6 +6184,46 @@ function renderEggGroups(section, layerItems) {
   });
 }
 
+function createMiscGroupSection(label) {
+  const collapsed = state.collapsedMiscGroups.has(label);
+  const wrapper = document.createElement("section");
+  wrapper.className = "misc-group-section";
+  wrapper.dataset.miscGroup = label;
+
+  const heading = document.createElement("button");
+  heading.type = "button";
+  heading.className = "misc-group-heading";
+  heading.dataset.miscGroup = label;
+  heading.setAttribute("aria-label", label);
+  heading.setAttribute("aria-expanded", String(!collapsed));
+  heading.addEventListener("mousedown", preventControlFocus);
+
+  const marker = document.createElement("span");
+  marker.className = "misc-group-heading-marker";
+  marker.textContent = collapsed ? "+" : "−";
+  const title = document.createElement("span");
+  title.className = "misc-group-heading-title";
+  title.textContent = label;
+  heading.append(marker, title);
+
+  const content = document.createElement("div");
+  content.className = "misc-group-content";
+  content.hidden = collapsed;
+
+  heading.addEventListener("click", (event) => {
+    event.preventDefault();
+    const nextCollapsed = !state.collapsedMiscGroups.has(label);
+    if (nextCollapsed) state.collapsedMiscGroups.add(label);
+    else state.collapsedMiscGroups.delete(label);
+    content.hidden = nextCollapsed;
+    marker.textContent = nextCollapsed ? "+" : "−";
+    heading.setAttribute("aria-expanded", String(!nextCollapsed));
+  });
+
+  wrapper.append(heading, content);
+  return { wrapper, content };
+}
+
 function renderTeleportGroups(section, layerItems) {
   TELEPORT_GROUPS.forEach(({ id, label }) => {
     const items = layerItems.filter((item) => item.teleport_type === id);
@@ -6257,12 +6298,11 @@ function refreshVisibility() {
   }
   refreshGroupedItemControls();
 
-  for (const heading of els.itemList.querySelectorAll(".misc-group-heading")) {
-    const section = heading.closest(".layer-panel");
-    const visibleGroupRows = [...section.querySelectorAll(".item-row")].some((row) => (
-      row.dataset.miscGroup === heading.dataset.miscGroup && !row.hidden
+  for (const group of els.itemList.querySelectorAll(".misc-group-section")) {
+    const visibleGroupRows = [...group.querySelectorAll(".item-row, .map-group-row")].some((row) => (
+      !row.hidden && !row.closest(".map-item-group")?.hidden
     ));
-    heading.hidden = !visibleGroupRows;
+    group.hidden = !visibleGroupRows;
   }
 
   for (const section of els.itemList.querySelectorAll(".layer-panel")) {
@@ -6370,21 +6410,20 @@ function renderItems() {
     }
 
     let previousMiscGroup = "";
+    let miscGroupContent = null;
     layerItems.forEach((item) => {
       if (groupedItemIds.has(item.item_id)) return;
       if (layer.id === "misc") {
         const miscGroup = miscGroupForItem(item);
         if (miscGroup !== previousMiscGroup) {
-          const heading = document.createElement("h3");
-          heading.className = "misc-group-heading";
-          heading.dataset.miscGroup = miscGroup;
-          heading.textContent = miscGroup;
-          section.append(heading);
+          const groupSection = createMiscGroupSection(miscGroup);
+          section.append(groupSection.wrapper);
+          miscGroupContent = groupSection.content;
           previousMiscGroup = miscGroup;
         }
       }
 
-      appendMapItemWithChildren(section, item);
+      appendMapItemWithChildren(miscGroupContent || section, item);
     });
 
     els.itemList.append(section);
