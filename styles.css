@@ -1726,9 +1726,9 @@ button[aria-pressed="true"] {
   line-height: 1;
 }
 
-.aniilog-filter-row {
+.aniilog-stat-filter-add-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 54px minmax(58px, 0.6fr);
+  grid-template-columns: minmax(0, 1fr) 48px minmax(58px, 0.55fr) auto;
   gap: 6px;
 }
 

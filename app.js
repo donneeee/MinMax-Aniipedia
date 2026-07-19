@@ -2,7 +2,7 @@ const DATA_URL = "./data/map_site_data.json?v=20260719-rv-boss-icons-v002";
 const CHECKLIST_URL = "./data/checklist_data.json?v=20260719-rv-boss-icons-v002";
 const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260719-rv-boss-icons-v002";
 const ANIILOG_DATA_URL = "./data/aniilog_data.json?v=20260719-rv-boss-icons-v002";
-const APP_VERSION = "v0.3.68";
+const APP_VERSION = "v0.3.69";
 const GITHUB_COMMITS_URL = "https://api.github.com/repos/donneeee/MinMax-Aniipedia/commits?sha=main&per_page=12";
 const ANIILOG_EXPANDED_GROUPS_STORAGE_KEY = "minmax-aniilog-expanded-groups-v1";
 const TRACKING_TICK_MS = 1000;
@@ -188,9 +188,7 @@ const state = {
     homeland: new Set(),
     stages: new Set(),
     forms: new Set(),
-    statId: "",
-    statComparator: ">",
-    statValue: "",
+    statRules: [],
     mobility: "any",
     exploration: "any",
     coreSkill: "any",
@@ -1504,10 +1502,16 @@ function aniilogFilterSectionSet() {
   return state.aniilogFilterSectionsOpen;
 }
 
+function aniilogStatRules() {
+  const filters = state.aniilogFilters || {};
+  if (!Array.isArray(filters.statRules)) filters.statRules = [];
+  return filters.statRules;
+}
+
 function hasActiveAniilogFilters() {
   const filters = state.aniilogFilters || {};
   return ["classes", "elements", "homeland", "stages", "forms"].some((name) => aniilogFilterSet(name).size)
-    || Boolean(filters.statId && filters.statValue !== "")
+    || aniilogStatRules().length > 0
     || (filters.mobility && filters.mobility !== "any")
     || (filters.exploration && filters.exploration !== "any")
     || (filters.coreSkill && filters.coreSkill !== "any");
@@ -1515,9 +1519,7 @@ function hasActiveAniilogFilters() {
 
 function resetAniilogFilters() {
   ["classes", "elements", "homeland", "stages", "forms"].forEach((name) => aniilogFilterSet(name).clear());
-  state.aniilogFilters.statId = "";
-  state.aniilogFilters.statComparator = ">";
-  state.aniilogFilters.statValue = "";
+  state.aniilogFilters.statRules = [];
   state.aniilogFilters.mobility = "any";
   state.aniilogFilters.exploration = "any";
   state.aniilogFilters.coreSkill = "any";
@@ -1559,6 +1561,27 @@ function addAniilogTierFilter(name, id) {
 
 function setAniilogScalarFilter(name, value) {
   state.aniilogFilters[name] = value;
+  updateAniilogFilterResults();
+}
+
+function addAniilogStatRule(statId, comparator, rawValue) {
+  const value = Number(rawValue);
+  if (!statId || rawValue === "" || !Number.isFinite(value)) return;
+  const normalizedComparator = new Set([">", "=", "<"]).has(comparator) ? comparator : ">";
+  const rules = aniilogStatRules();
+  if (rules.some((rule) => (
+    rule.statId === statId
+    && rule.comparator === normalizedComparator
+    && Number(rule.value) === value
+  ))) return;
+  rules.push({ statId, comparator: normalizedComparator, value });
+  updateAniilogFilterResults();
+}
+
+function removeAniilogStatRule(index) {
+  const rules = aniilogStatRules();
+  if (index < 0 || index >= rules.length) return;
+  rules.splice(index, 1);
   updateAniilogFilterResults();
 }
 
@@ -1777,20 +1800,19 @@ function aniilogEntryMatchesFilters(entry) {
   const formKey = normalizeFilterKey(entry?.form_label || entry?.form_key);
   if (formFilters.size && !formFilters.has(formKey)) return false;
 
-  const stat = filters.statId === ANIILOG_BASE_STAT_TOTAL_OPTION.id
-    ? ANIILOG_BASE_STAT_TOTAL_OPTION
-    : visibleAniilogStatConfig().find((option) => option.id === filters.statId);
-  const threshold = Number(filters.statValue);
-  if (stat && filters.statValue !== "" && Number.isFinite(threshold)) {
+  for (const rule of aniilogStatRules()) {
+    const stat = rule.statId === ANIILOG_BASE_STAT_TOTAL_OPTION.id
+      ? ANIILOG_BASE_STAT_TOTAL_OPTION
+      : ANIILOG_STAT_CONFIG.find((option) => option.id === rule.statId);
+    const threshold = Number(rule.value);
+    if (!stat || !Number.isFinite(threshold)) continue;
     const value = stat.id === ANIILOG_BASE_STAT_TOTAL_OPTION.id
       ? aniilogBaseStatTotal(entry)
       : aniilogStatValue(entry, stat.sourceLabel);
     if (value === null) return false;
-    if ((filters.statComparator || ">") === "<") {
-      if (!(value < threshold)) return false;
-    } else if (!(value > threshold)) {
-      return false;
-    }
+    if (rule.comparator === "<" && !(value < threshold)) return false;
+    if (rule.comparator === "=" && value !== threshold) return false;
+    if (rule.comparator !== "<" && rule.comparator !== "=" && !(value > threshold)) return false;
   }
 
   if (!aniilogSkillFilterMatches(entry?.mobility_skills, filters.mobility)) return false;
@@ -2248,47 +2270,94 @@ function renderAniilogSkillSelect(name, labelText, options, labels = {}) {
 }
 
 function renderAniilogStatFilter() {
-  const filters = state.aniilogFilters;
+  const wrapper = document.createElement("div");
+  wrapper.className = "aniilog-filter-builder";
   const row = document.createElement("div");
-  row.className = "aniilog-filter-row";
+  row.className = "aniilog-filter-add-row aniilog-stat-filter-add-row";
 
   const statSelect = document.createElement("select");
   statSelect.className = "aniilog-filter-select";
+  statSelect.setAttribute("aria-label", "Base stat");
   const anyOption = document.createElement("option");
   anyOption.value = "";
-  anyOption.textContent = "Any base stat";
-  anyOption.selected = !filters.statId;
+  anyOption.textContent = "Choose a base stat";
   statSelect.append(anyOption);
   [ANIILOG_BASE_STAT_TOTAL_OPTION, ...visibleAniilogStatConfig()].forEach((stat) => {
     const option = document.createElement("option");
     option.value = stat.id;
     option.textContent = stat.label;
-    option.selected = stat.id === filters.statId;
     statSelect.append(option);
   });
-  statSelect.addEventListener("change", () => setAniilogScalarFilter("statId", statSelect.value));
 
   const comparator = document.createElement("select");
   comparator.className = "aniilog-filter-select";
-  [">", "<"].forEach((value) => {
+  comparator.setAttribute("aria-label", "Stat comparison");
+  [
+    { value: ">", label: ">" },
+    { value: "=", label: "=" },
+    { value: "<", label: "<" },
+  ].forEach(({ value: comparatorValue, label }) => {
     const option = document.createElement("option");
-    option.value = value;
-    option.textContent = value;
-    option.selected = value === (filters.statComparator || ">");
+    option.value = comparatorValue;
+    option.textContent = label;
     comparator.append(option);
   });
-  comparator.addEventListener("change", () => setAniilogScalarFilter("statComparator", comparator.value));
 
   const value = document.createElement("input");
   value.className = "aniilog-filter-input";
   value.type = "number";
   value.inputMode = "numeric";
   value.placeholder = "Value";
-  value.value = filters.statValue ?? "";
-  value.addEventListener("change", () => setAniilogScalarFilter("statValue", value.value));
+  value.setAttribute("aria-label", "Stat value");
 
-  row.append(statSelect, comparator, value);
-  return row;
+  const add = document.createElement("button");
+  add.type = "button";
+  add.className = "aniilog-filter-add";
+  add.textContent = "Add";
+  add.setAttribute("aria-label", "Add base stat rule");
+  add.disabled = true;
+
+  const refreshAddState = () => {
+    add.disabled = !statSelect.value || value.value === "" || !Number.isFinite(Number(value.value));
+  };
+  const submit = () => {
+    if (add.disabled) return;
+    addAniilogStatRule(statSelect.value, comparator.value, value.value);
+  };
+  statSelect.addEventListener("change", refreshAddState);
+  value.addEventListener("input", refreshAddState);
+  value.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    submit();
+  });
+  add.addEventListener("click", submit);
+
+  const activeRules = document.createElement("div");
+  activeRules.className = "aniilog-filter-active-rules";
+  aniilogStatRules().forEach((rule, index) => {
+    const stat = rule.statId === ANIILOG_BASE_STAT_TOTAL_OPTION.id
+      ? ANIILOG_BASE_STAT_TOTAL_OPTION
+      : ANIILOG_STAT_CONFIG.find((option) => option.id === rule.statId);
+    const label = `${stat?.label || rule.statId} ${rule.comparator || ">"} ${formatNumber(Number(rule.value), 0)}`;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "aniilog-filter-rule";
+    button.setAttribute("aria-label", `Remove ${label} filter`);
+    const text = document.createElement("span");
+    text.textContent = label;
+    const remove = document.createElement("span");
+    remove.className = "aniilog-filter-rule-remove";
+    remove.textContent = "x";
+    remove.setAttribute("aria-hidden", "true");
+    button.append(text, remove);
+    button.addEventListener("click", () => removeAniilogStatRule(index));
+    activeRules.append(button);
+  });
+
+  row.append(statSelect, comparator, value, add);
+  wrapper.append(row, activeRules);
+  return wrapper;
 }
 
 function renderAniilogFilters(allEntries) {
@@ -2319,7 +2388,7 @@ function renderAniilogFilters(allEntries) {
     renderAniilogSimpleRuleBuilder("forms", ANIILOG_SPECIAL_FORM_FILTERS, "Choose a form"),
   ], aniilogFilterSet("forms").size));
   panel.append(renderAniilogFilterSection("stats", "Base stat", [renderAniilogStatFilter()],
-    state.aniilogFilters.statId && state.aniilogFilters.statValue !== "" ? 1 : 0));
+    aniilogStatRules().length));
   const skillFilterCount = ["mobility", "exploration", "coreSkill"]
     .filter((name) => state.aniilogFilters[name] && state.aniilogFilters[name] !== "any").length;
   panel.append(renderAniilogFilterSection("skills", "Skills", [
