@@ -1,8 +1,8 @@
-const DATA_URL = "./data/map_site_data.json?v=20260719-rv-expeditions-v003";
-const CHECKLIST_URL = "./data/checklist_data.json?v=20260719-rv-expeditions-v003";
-const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260719-rv-expeditions-v003";
-const ANIILOG_DATA_URL = "./data/aniilog_data.json?v=20260719-rv-expeditions-v003";
-const APP_VERSION = "v0.3.73";
+const DATA_URL = "./data/map_site_data.json?v=20260719-aniimo-progression-v001";
+const CHECKLIST_URL = "./data/checklist_data.json?v=20260719-aniimo-progression-v001";
+const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260719-aniimo-progression-v001";
+const ANIILOG_DATA_URL = "./data/aniilog_data.json?v=20260719-aniimo-progression-v001";
+const APP_VERSION = "v0.3.74";
 const GITHUB_COMMITS_URL = "https://api.github.com/repos/donneeee/MinMax-Aniipedia/commits?sha=main&per_page=12";
 const ANIILOG_EXPANDED_GROUPS_STORAGE_KEY = "minmax-aniilog-expanded-groups-v1";
 const TRACKING_TICK_MS = 1000;
@@ -3008,6 +3008,156 @@ function renderCatalogEvolution(entry) {
   return section;
 }
 
+function createProgressionMaterialChip(material, quantity, qualifier = "") {
+  const chip = document.createElement("span");
+  chip.className = "catalog-progression-material-chip";
+  const icon = makeIcon("catalog-progression-material-icon", material?.icon);
+  icon.alt = material?.name ? `${material.name} icon` : "Progression material icon";
+  const copy = document.createElement("span");
+  const name = document.createElement("strong");
+  name.textContent = material?.name || "Unknown material";
+  const amount = document.createElement("small");
+  amount.textContent = `${qualifier}${qualifier ? " " : ""}x${quantity ?? 1}`;
+  copy.append(name, amount);
+  chip.append(icon, copy);
+  return chip;
+}
+
+function renderProgressionCosts(costs, materials) {
+  const list = document.createElement("div");
+  list.className = "catalog-progression-costs";
+  (Array.isArray(costs) ? costs : []).forEach((cost) => {
+    const material = cost.item || materials?.[cost.slot];
+    if (!material) return;
+    const group = document.createElement("span");
+    group.className = "catalog-progression-cost-group";
+    group.append(createProgressionMaterialChip(material, cost.quantity));
+    if (cost.slot === "stage" && materials?.stage_alternative) {
+      const separator = document.createElement("span");
+      separator.className = "catalog-progression-cost-alternative";
+      separator.textContent = "or";
+      group.append(
+        separator,
+        createProgressionMaterialChip(materials.stage_alternative, cost.quantity, "substitute"),
+      );
+    }
+    list.append(group);
+  });
+  return list;
+}
+
+function renderAniimoProgression(entry, progression) {
+  const stages = Array.isArray(progression?.stages) ? progression.stages : [];
+  const materials = entry.progression_materials;
+  if (!stages.length || !materials?.stage || !materials?.training) return null;
+
+  const section = createCatalogSection("Aniimo Progression");
+  section.classList.add("catalog-progression-section");
+  const intro = document.createElement("div");
+  intro.className = "catalog-progression-intro";
+  const system = document.createElement("strong");
+  system.textContent = progression.system || "Resonance Training";
+  const summary = document.createElement("span");
+  summary.textContent = `${progression.max_stage || stages.length} stages with level gates, stage bonuses, and per-level training costs.`;
+  intro.append(system, summary);
+
+  const legend = document.createElement("div");
+  legend.className = "catalog-progression-materials";
+  const materialRoles = [
+    ["Stage material", materials.stage],
+    ["Training material", materials.training],
+    ["Stage substitute", materials.stage_alternative],
+  ];
+  materialRoles.forEach(([label, material]) => {
+    if (!material) return;
+    const card = document.createElement("article");
+    card.className = "catalog-progression-material";
+    const icon = makeIcon("catalog-progression-material-icon", material.icon);
+    icon.alt = `${material.name} icon`;
+    const copy = document.createElement("div");
+    const role = document.createElement("small");
+    role.textContent = label;
+    const name = document.createElement("strong");
+    name.textContent = material.name;
+    copy.append(role, name);
+    card.append(icon, copy);
+    legend.append(card);
+  });
+
+  const stageList = document.createElement("div");
+  stageList.className = "catalog-progression-stages";
+  stages.forEach((stage) => {
+    const details = document.createElement("details");
+    details.className = "catalog-progression-stage";
+    if (stage.stage === 1) details.open = true;
+    const stageSummary = document.createElement("summary");
+    const number = document.createElement("span");
+    number.className = "catalog-progression-stage-number";
+    number.textContent = String(stage.stage);
+    const copy = document.createElement("span");
+    copy.className = "catalog-progression-stage-copy";
+    const title = document.createElement("strong");
+    title.textContent = `Tier ${stage.stage}`;
+    const condition = document.createElement("small");
+    condition.textContent = stage.condition || (stage.stage === 1 ? "Starting tier" : "No level gate");
+    copy.append(title, condition);
+    stageSummary.append(number, copy);
+    if (stage.stage_bonus) {
+      const bonus = document.createElement("span");
+      bonus.className = "catalog-progression-stage-bonus";
+      bonus.textContent = stage.stage_bonus;
+      stageSummary.append(bonus);
+    }
+    details.append(stageSummary);
+
+    const body = document.createElement("div");
+    body.className = "catalog-progression-stage-body";
+    if (Array.isArray(stage.advance_costs) && stage.advance_costs.length) {
+      const advance = document.createElement("div");
+      advance.className = "catalog-progression-advance";
+      const label = document.createElement("h5");
+      label.textContent = `Advance to Tier ${stage.stage}`;
+      advance.append(label, renderProgressionCosts(stage.advance_costs, materials));
+      body.append(advance);
+    }
+
+    const trainingSteps = Array.isArray(stage.training_steps) ? stage.training_steps : [];
+    if (trainingSteps.length) {
+      const training = document.createElement("div");
+      training.className = "catalog-progression-training";
+      const label = document.createElement("h5");
+      label.textContent = "Training levels";
+      const rows = document.createElement("div");
+      rows.className = "catalog-progression-training-rows";
+      trainingSteps.forEach((step) => {
+        const row = document.createElement("article");
+        row.className = "catalog-progression-training-row";
+        const level = document.createElement("strong");
+        level.textContent = `Level ${step.level}`;
+        const gains = document.createElement("span");
+        const statGains = Array.isArray(step.stat_gains) ? step.stat_gains : [];
+        gains.textContent = statGains.length
+          ? statGains.map((gain) => `${gain.label} +${gain.value}`).join(" · ")
+          : "Configured stat gain";
+        row.append(level, gains, renderProgressionCosts(step.costs, materials));
+        rows.append(row);
+      });
+      training.append(label, rows);
+      body.append(training);
+    } else {
+      const maximum = document.createElement("p");
+      maximum.className = "catalog-progression-maximum";
+      maximum.textContent = "Maximum resonance tier.";
+      body.append(maximum);
+    }
+    details.append(body);
+    stageList.append(details);
+  });
+
+  section.append(intro, legend, stageList);
+  return section;
+}
+
 function renderBossRewardTier(tier) {
   const block = document.createElement("section");
   block.className = "catalog-boss-tier";
@@ -3208,6 +3358,8 @@ function renderAniilogCatalogRecord(entry) {
   if (bossVariants) record.append(bossVariants);
   const evolution = renderCatalogEvolution(entry);
   if (evolution) record.append(evolution);
+  const progression = renderAniimoProgression(entry, state.aniilogData?.aniimo_progression);
+  if (progression) record.append(progression);
   return record;
 }
 
