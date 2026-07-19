@@ -2124,6 +2124,34 @@ body.catalog-view-active .sidebar .detail-panel {
   color: var(--muted);
 }
 
+.catalog-expedition-kind {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px 8px;
+}
+
+.catalog-expedition-confidence {
+  padding: 2px 6px;
+  border: 1px solid rgba(130, 175, 181, 0.5);
+  border-radius: 999px;
+  color: #c8dadd;
+  font-size: 0.68rem;
+  font-weight: 750;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.catalog-expedition-confidence.is-in-game-observed {
+  border-color: rgba(91, 203, 164, 0.72);
+  color: #baf5df;
+}
+
+.catalog-expedition-confidence.is-tier-rule-inferred {
+  border-color: rgba(217, 172, 85, 0.62);
+  color: #efd598;
+}
+
 .catalog-expedition-quantity {
   justify-self: end;
   color: #d7fff4;
