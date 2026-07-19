@@ -2,7 +2,7 @@ const DATA_URL = "./data/map_site_data.json?v=20260719-rv-boss-icons-v002";
 const CHECKLIST_URL = "./data/checklist_data.json?v=20260719-rv-boss-icons-v002";
 const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260719-rv-boss-icons-v002";
 const ANIILOG_DATA_URL = "./data/aniilog_data.json?v=20260719-rv-boss-icons-v002";
-const APP_VERSION = "v0.3.69";
+const APP_VERSION = "v0.3.70";
 const GITHUB_COMMITS_URL = "https://api.github.com/repos/donneeee/MinMax-Aniipedia/commits?sha=main&per_page=12";
 const ANIILOG_EXPANDED_GROUPS_STORAGE_KEY = "minmax-aniilog-expanded-groups-v1";
 const TRACKING_TICK_MS = 1000;
@@ -1933,7 +1933,9 @@ const CATALOG_INDEX_OVERSCAN = 6;
 function createCatalogIndexRow(entry, selectedId, view, virtualIndex) {
   const button = document.createElement("button");
   button.type = "button";
-  button.className = "catalog-index-row catalog-index-row--virtual";
+  button.className = "catalog-index-row";
+  const isVirtual = Number.isInteger(virtualIndex);
+  if (isVirtual) button.classList.add("catalog-index-row--virtual");
   if (view === "itemlog") {
     button.classList.add(
       "catalog-index-row--tiered",
@@ -1943,7 +1945,7 @@ function createCatalogIndexRow(entry, selectedId, view, virtualIndex) {
   const selected = entry.id === selectedId;
   button.setAttribute("aria-pressed", String(selected));
   button.dataset.catalogEntryId = entry.id;
-  button.style.transform = `translateY(${virtualIndex * CATALOG_INDEX_ROW_HEIGHT}px)`;
+  if (isVirtual) button.style.transform = `translateY(${virtualIndex * CATALOG_INDEX_ROW_HEIGHT}px)`;
 
   const icon = makeIcon("catalog-index-icon", entry.icon);
   const copy = document.createElement("span");
@@ -3348,7 +3350,7 @@ function isAniilogBasicForm(entry) {
     || /\((?:basic|basic form)\)$/i.test(getAniilogEntryName(entry));
 }
 
-function renderAniilogGroupedIndex(entries, selectedId, title) {
+function renderAniilogGroupedIndex(entries, selectedId) {
   const index = document.createElement("div");
   index.className = "catalog-index catalog-grouped-index";
   const groups = new Map();
@@ -3367,11 +3369,11 @@ function renderAniilogGroupedIndex(entries, selectedId, title) {
     group.className = "catalog-form-group";
     group.dataset.aniilogGroup = groupKey;
 
-    const baseIndex = renderCatalogIndex([baseEntry], selectedId, "aniilog", title);
-    const baseRow = baseIndex.firstElementChild;
-    if (!baseRow) return;
-    baseRow.classList.add("catalog-form-base");
-    group.append(baseRow);
+    const base = document.createElement("div");
+    base.className = "catalog-form-base";
+    const baseRow = createCatalogIndexRow(baseEntry, selectedId, "aniilog", null);
+    base.append(baseRow);
+    group.append(base);
 
     if (childEntries.length) {
       const expanded = expandedGroups.has(groupKey);
@@ -3392,17 +3394,16 @@ function renderAniilogGroupedIndex(entries, selectedId, title) {
         persistAniilogExpandedGroups(expandedGroups);
         renderCatalogPreview();
       });
-      group.append(toggle);
+      base.append(toggle);
 
       if (expanded) {
         const children = document.createElement("div");
         children.className = "catalog-form-children";
-        const childIndex = renderCatalogIndex(childEntries, selectedId, "aniilog", title);
-        while (childIndex.firstElementChild) {
-          const child = childIndex.firstElementChild;
+        childEntries.forEach((childEntry) => {
+          const child = createCatalogIndexRow(childEntry, selectedId, "aniilog", null);
           child.classList.add("catalog-form-child");
           children.append(child);
-        }
+        });
         group.append(children);
       }
     }
@@ -3469,7 +3470,7 @@ function renderCatalogSidebar(view, title, allEntries, entries, selectedId, stat
       && !hasAniilogSearch
       && entries.length === allEntries.length;
     index = shouldGroupAniilog
-      ? renderAniilogGroupedIndex(entries, selectedId, title)
+      ? renderAniilogGroupedIndex(entries, selectedId)
       : renderCatalogIndex(entries, selectedId, view, title);
     index.dataset.catalogView = view;
     index.addEventListener("scroll", () => {

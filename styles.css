@@ -3854,24 +3854,26 @@ body.catalog-view-active .sidebar .detail-panel {
   margin: 0 0 10px !important;
 }
 
-.catalog-form-group > .catalog-index-row:first-child {
+.catalog-form-base {
+  position: relative;
+  min-width: 0;
+}
+
+.catalog-form-base > .catalog-index-row {
+  position: relative;
   width: 100%;
   min-width: 0;
 }
 
-.catalog-form-group:has(> .catalog-form-toggle) > .catalog-index-row:first-child {
+.catalog-form-base:has(> .catalog-form-toggle) > .catalog-index-row {
   padding-right: 58px;
 }
 
-.catalog-form-group > .catalog-index-row:first-child,
-.catalog-form-group > .catalog-form-toggle {
-  grid-area: 1 / 1;
-}
-
-.catalog-form-group > .catalog-form-toggle {
-  align-self: center;
-  justify-self: end;
-  margin-right: 12px;
+.catalog-form-base > .catalog-form-toggle {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
 }
 
 .catalog-form-toggle {
@@ -3903,7 +3905,6 @@ body.catalog-view-active .sidebar .detail-panel {
 
 .catalog-form-children,
 .catalog-form-group > .catalog-form-children {
-  grid-area: 2 / 1;
   display: grid;
   gap: 8px;
   min-width: 0;
