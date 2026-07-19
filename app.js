@@ -2,7 +2,7 @@ const DATA_URL = "./data/map_site_data.json?v=20260717-geography-hierarchy-v001"
 const CHECKLIST_URL = "./data/checklist_data.json?v=20260717-lumin-marking-icon-v001";
 const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260718-itemlog-icon-recovery-v002";
 const ANIILOG_DATA_URL = "./data/aniilog_data.json?v=20260718-skill-variants-v002";
-const APP_VERSION = "v0.3.61";
+const APP_VERSION = "v0.3.62";
 const TRACKING_TICK_MS = 1000;
 const LOCAL_TRACKING_STORAGE_KEY = "minmax-map:tracking:v1";
 const LOCAL_COMPLETION_STORAGE_KEY = "minmax-map:completed:v1";
@@ -2461,16 +2461,26 @@ function renderCatalogAbilitySection(title, abilities, emptyText = "No data avai
     const icon = makeIcon("catalog-ability-icon", ability.icon);
     icon.alt = `${ability.name} icon`;
     const copy = document.createElement("div");
-    card.append(icon, copy);
+    copy.className = "catalog-ability-copy";
+    card.append(copy);
     let showUpgrade = false;
 
     const renderVariant = () => {
       const displayed = showUpgrade && ability.upgrade
         ? { ...ability, ...ability.upgrade, core: ability.core }
         : ability;
+      card.classList.toggle("catalog-ability-card--upgradeable", Boolean(ability.upgrade));
+      card.classList.toggle("catalog-ability-card--upgraded", Boolean(showUpgrade && ability.upgrade));
       copy.replaceChildren();
       icon.src = displayed.icon || ability.icon || "";
       icon.alt = `${displayed.name || ability.name || "Ability"} icon`;
+
+      const header = document.createElement("div");
+      header.className = "catalog-ability-header";
+      const headerCopy = document.createElement("div");
+      headerCopy.className = "catalog-ability-header-copy";
+      header.append(icon, headerCopy);
+      copy.append(header);
 
       const heading = document.createElement("div");
       heading.className = "catalog-ability-heading";
@@ -2490,26 +2500,23 @@ function renderCatalogAbilitySection(title, abilities, emptyText = "No data avai
         coreBadge.append(coreIcon, coreLabel);
         heading.append(coreBadge);
       }
-      copy.append(heading);
+      headerCopy.append(heading);
 
       if (ability.upgrade) {
-        const toggle = document.createElement("div");
-        toggle.className = "catalog-skill-variant-toggle";
-        toggle.setAttribute("aria-label", `${ability.name || "Core skill"} version`);
-        [["Normal", false], ["Upgraded", true]].forEach(([label, upgraded]) => {
-          const button = document.createElement("button");
-          button.type = "button";
-          button.textContent = label;
-          button.classList.toggle("active", showUpgrade === upgraded);
-          button.setAttribute("aria-pressed", String(showUpgrade === upgraded));
-          button.addEventListener("click", () => {
-            if (showUpgrade === upgraded) return;
-            showUpgrade = upgraded;
-            renderVariant();
-          });
-          toggle.append(button);
+        const levelButton = document.createElement("button");
+        levelButton.type = "button";
+        levelButton.className = "catalog-skill-level-button";
+        levelButton.textContent = showUpgrade ? "Lv. 2" : "Lv. 1";
+        levelButton.setAttribute(
+          "aria-label",
+          `${ability.name || "Core skill"}: show ${showUpgrade ? "Level 1" : "Level 2"}`,
+        );
+        levelButton.setAttribute("aria-pressed", String(showUpgrade));
+        levelButton.addEventListener("click", () => {
+          showUpgrade = !showUpgrade;
+          renderVariant();
         });
-        copy.append(toggle);
+        header.append(levelButton);
       }
 
       const combat = displayed.combat && typeof displayed.combat === "object" ? displayed.combat : null;
@@ -2541,7 +2548,7 @@ function renderCatalogAbilitySection(title, abilities, emptyText = "No data avai
         (Array.isArray(combat.types) ? combat.types : []).forEach((type) => addBadge(type, "type"));
         const elementMeta = catalogElementMeta(combat.element);
         addBadge(catalogElementLabel(combat.element), "element", combat.element_color || elementMeta.color, elementMeta.icon);
-        if (badges.childElementCount) copy.append(badges);
+        if (badges.childElementCount) headerCopy.append(badges);
 
         const facts = document.createElement("div");
         facts.className = "catalog-ability-facts";
