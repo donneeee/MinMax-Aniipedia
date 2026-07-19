@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "fallback_locale": "en",
+  "locales": {
+    "en": {
+      "file": "en.json",
+      "uid_count": 92954,
+      "display_count": 0,
+      "missing_english_uid_count": 0,
+      "ambiguous_display_sources": 0
+    },
+    "zh-CN": {
+      "file": "zh-CN.json",
+      "uid_count": 92952,
+      "display_count": 41075,
+      "missing_english_uid_count": 4,
+      "ambiguous_display_sources": 830
+    },
+    "ja": {
+      "file": "ja.json",
+      "uid_count": 92954,
+      "display_count": 41231,
+      "missing_english_uid_count": 0,
+      "ambiguous_display_sources": 724
+    },
+    "ko": {
+      "file": "ko.json",
+      "uid_count": 92954,
+      "display_count": 41120,
+      "missing_english_uid_count": 0,
+      "ambiguous_display_sources": 771
+    }
+  }
+}

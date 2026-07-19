@@ -845,6 +845,34 @@ button[aria-pressed="true"] {
   gap: 12px;
 }
 
+.settings-language-card {
+  gap: 12px;
+}
+
+.settings-language-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(150px, auto);
+  align-items: center;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.settings-language-field select {
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel-2);
+  color: var(--text);
+  padding: 0 30px 0 10px;
+}
+
+.settings-language-note {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 .settings-toggle {
   display: grid;
   grid-template-columns: 18px minmax(0, 1fr);

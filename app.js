@@ -1,8 +1,8 @@
-const DATA_URL = "./data/map_site_data.json?v=20260719-aniimo-progression-v001";
-const CHECKLIST_URL = "./data/checklist_data.json?v=20260719-aniimo-progression-v001";
-const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260719-aniimo-progression-v001";
-const ANIILOG_DATA_URL = "./data/aniilog_data.json?v=20260719-aniimo-progression-v001";
-const APP_VERSION = "v0.3.74";
+const DATA_URL = "./data/map_site_data.json?v=20260719-localization-v001";
+const CHECKLIST_URL = "./data/checklist_data.json?v=20260719-localization-v001";
+const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260719-localization-v001";
+const ANIILOG_DATA_URL = "./data/aniilog_data.json?v=20260719-localization-v001";
+const APP_VERSION = "v0.3.75";
 const GITHUB_COMMITS_URL = "https://api.github.com/repos/donneeee/MinMax-Aniipedia/commits?sha=main&per_page=12";
 const ANIILOG_EXPANDED_GROUPS_STORAGE_KEY = "minmax-aniilog-expanded-groups-v1";
 const TRACKING_TICK_MS = 1000;
@@ -74,8 +74,9 @@ const CATALOG_HOMELAND_META = Object.freeze({
 });
 const HOMELAND_ELEMENT_IDS = new Set(["1000", "1001", "1002", "1003", "1004", "1005", "1006", "1007", "1008"]);
 const ANIILOG_SPECIAL_FORM_FILTERS = Object.freeze([
-  { id: "prismana", label: "Prismana" },
+  { id: "rainbow", label: "Prismana" },
   { id: "umbrabow", label: "Umbrabow" },
+  { id: "legendary", label: "Legendary" },
 ]);
 const ANIILOG_EVOLUTION_STAGES = Object.freeze([
   { id: "lumin", label: "Lumin" },
@@ -84,6 +85,7 @@ const ANIILOG_EVOLUTION_STAGES = Object.freeze([
 ]);
 const DEFAULT_PREFERENCES = Object.freeze({
   showMagicAttack: false,
+  language: "en",
 });
 const COLORS = [
   "#7fc6b2",
@@ -838,6 +840,7 @@ function loadLocalTracking() {
     state.preferences = {
       ...DEFAULT_PREFERENCES,
       showMagicAttack: Boolean(preferences?.showMagicAttack),
+      language: window.AniipediaI18n.normalizeLocale(preferences?.language),
     };
   } catch (error) {
     state.tracking = new Map();
@@ -1076,6 +1079,40 @@ function renderTracking() {
 
 function renderSettings() {
   els.settingsContent.textContent = "";
+  const languageCard = document.createElement("section");
+  languageCard.className = "settings-card settings-language-card";
+  const languageCopy = document.createElement("div");
+  languageCopy.className = "settings-account";
+  const languageTitle = document.createElement("strong");
+  languageTitle.textContent = "Language";
+  const languageDetail = document.createElement("small");
+  languageDetail.textContent = "Game data and website interface";
+  languageCopy.append(languageTitle, languageDetail);
+  const languageLabel = document.createElement("label");
+  languageLabel.className = "settings-language-field";
+  const languageLabelText = document.createElement("span");
+  languageLabelText.textContent = "Display language";
+  const languageSelect = document.createElement("select");
+  Object.entries(window.AniipediaI18n.languages).forEach(([locale, metadata]) => {
+    const option = document.createElement("option");
+    option.value = locale;
+    option.textContent = metadata.label;
+    option.dataset.i18nSkip = "";
+    languageSelect.append(option);
+  });
+  languageSelect.value = state.preferences.language;
+  languageSelect.addEventListener("change", () => {
+    state.preferences.language = window.AniipediaI18n.normalizeLocale(languageSelect.value);
+    persistLocalTracking();
+    window.location.reload();
+  });
+  languageLabel.append(languageLabelText, languageSelect);
+  const languageNote = document.createElement("small");
+  languageNote.className = "settings-language-note";
+  languageNote.textContent = "Language changes apply after the page reloads.";
+  languageCard.append(languageCopy, languageLabel, languageNote);
+  els.settingsContent.append(languageCard);
+
   const account = document.createElement("div");
   account.className = "settings-card";
   const identity = document.createElement("div");
@@ -1823,7 +1860,7 @@ function aniilogEntryMatchesFilters(entry) {
   }
 
   const formFilters = aniilogFilterSet("forms");
-  const formKey = normalizeFilterKey(entry?.form_label || entry?.form_key);
+  const formKey = normalizeFilterKey(entry?.form_key || entry?.form_label);
   if (formFilters.size && !formFilters.has(formKey)) return false;
 
   for (const rule of aniilogStatRules()) {
@@ -4905,13 +4942,16 @@ function normalizedSearch(value) {
 
 function searchText(parts) {
   const values = [];
+  const append = (value) => {
+    if (value !== null && value !== undefined) {
+      values.push(window.AniipediaI18n.searchAlias(value));
+    }
+  };
   parts.forEach((part) => {
     if (Array.isArray(part)) {
-      part.forEach((value) => {
-        if (value !== null && value !== undefined) values.push(value);
-      });
-    } else if (part !== null && part !== undefined) {
-      values.push(part);
+      part.forEach(append);
+    } else {
+      append(part);
     }
   });
   return values.join(" ").toLowerCase();
@@ -6153,6 +6193,15 @@ function bindEvents() {
 }
 
 async function init() {
+  loadLocalTracking();
+  try {
+    await window.AniipediaI18n.load(state.preferences.language);
+  } catch (error) {
+    console.error(error);
+    state.preferences.language = "en";
+    await window.AniipediaI18n.load("en");
+  }
+  window.AniipediaI18n.start();
   bindEvents();
   const checklistRequest = fetch(CHECKLIST_URL)
     .then(async (response) => {
@@ -6194,7 +6243,6 @@ async function init() {
   renderSettings();
   renderMapTabs();
   switchMap(state.activeMapId);
-  initializeLocalTracking();
   if ("requestIdleCallback" in window) {
     window.requestIdleCallback(preloadAniilogData, { timeout: 1500 });
   } else {

@@ -1369,10 +1369,10 @@
       "form_id": "1021300",
       "base_id": "10213",
       "name": "Irisalis",
-      "form_key": "basic",
-      "form_label": "Prismana",
+      "form_key": "legendary",
+      "form_label": "Legendary",
       "aniilog_number": "#013",
-      "icon": "assets/icons/aniimo_10213_basic__10213_Iris_UI_PetHead_10213_Sprite_-4935230360311873662.png",
+      "icon": "assets/icons/aniimo_10213_legendary__10213_Iris_UI_PetHead_10213_Sprite_-4935230360311873662.png",
       "counts_toward_total": true,
       "completion_states": [
         {
@@ -1388,7 +1388,7 @@
       "source": {
         "research_id": "1021300",
         "prototype_id": "1021300",
-        "form_name": "basic"
+        "form_name": "legendary"
       }
     },
     {
