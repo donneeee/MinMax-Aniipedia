@@ -1,8 +1,8 @@
 const DATA_URL = "./data/map_site_data.json?v=20260719-whisperwake-lumen-groups-v001";
 const CHECKLIST_URL = "./data/checklist_data.json?v=20260719-lumen-embers-v001";
-const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260719-public-catalog-v002";
+const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260720-rune-reference-v001";
 const ANIILOG_DATA_URL = "./data/aniilog_data.json?v=20260719-localization-v003";
-const APP_VERSION = "v0.3.99";
+const APP_VERSION = "v0.4.00";
 const GITHUB_COMMITS_URL = "https://api.github.com/repos/donneeee/MinMax-Aniipedia/commits?sha=main&per_page=30";
 const CHANGELOG_INTERNAL_MARKER_RE = /\[(?:skip changelog|internal)\]/i;
 const CHANGELOG_PUBLIC_ENTRY_LIMIT = 12;
@@ -4228,6 +4228,170 @@ function renderCarriedItemEffects(carriedEffects) {
   return section;
 }
 
+function makeRuneShapeMark(shape, extraClass = "") {
+  const mark = document.createElement("span");
+  const shapeId = String(shape?.id || "unknown");
+  mark.className = `catalog-rune-shape catalog-rune-shape--${shapeId}${extraClass ? ` ${extraClass}` : ""}`;
+  mark.setAttribute("aria-hidden", "true");
+  return mark;
+}
+
+function runeCountLabel(count) {
+  const minimum = Number(count?.minimum) || 0;
+  const maximum = Number(count?.maximum) || 0;
+  return minimum === maximum ? String(minimum) : `${minimum}–${maximum}`;
+}
+
+function appendRuneRollPool(container, shape, title = "Possible secondary rolls") {
+  if (!shape || !Array.isArray(shape.secondary_rolls) || !shape.secondary_rolls.length) return;
+  const card = document.createElement("article");
+  card.className = `catalog-rune-pool catalog-rune-pool--${shape.id}`;
+  const heading = document.createElement("header");
+  const identity = document.createElement("div");
+  identity.className = "catalog-rune-pool-identity";
+  identity.append(makeRuneShapeMark(shape));
+  const headingCopy = document.createElement("div");
+  const name = document.createElement("strong");
+  name.textContent = `${shape.label} · ${shape.role}`;
+  const main = document.createElement("small");
+  main.textContent = `Main: ${(shape.main_stats || []).join(" / ")}`;
+  headingCopy.append(name, main);
+  identity.append(headingCopy);
+  const label = document.createElement("span");
+  label.textContent = title;
+  heading.append(identity, label);
+
+  const rolls = document.createElement("div");
+  rolls.className = "catalog-rune-rolls";
+  shape.secondary_rolls.forEach((roll) => {
+    const chip = document.createElement("span");
+    const rollName = document.createElement("strong");
+    rollName.textContent = roll.label;
+    const range = document.createElement("span");
+    range.textContent = roll.range_label;
+    chip.append(rollName, range);
+    rolls.append(chip);
+  });
+  card.append(heading, rolls);
+  container.append(card);
+}
+
+function renderCarriedItemRuneLayout(layout, runeReference) {
+  if (!layout || !Array.isArray(layout.slots) || !layout.slots.length) return null;
+  const section = createCatalogSection("Rune slots");
+  section.classList.add("catalog-rune-section");
+
+  const intro = document.createElement("div");
+  intro.className = "catalog-rune-layout-intro";
+  const summary = document.createElement("strong");
+  summary.textContent = `${formatNumber(layout.available_socket_count || 0)} sockets at max +${formatNumber(layout.max_enhancement || 0)}`;
+  const explanation = document.createElement("span");
+  explanation.textContent = "Fixed slots are tied to this item. Any-shape slots roll separately on each copy.";
+  intro.append(summary, explanation);
+
+  const slots = document.createElement("div");
+  slots.className = "catalog-rune-slots";
+  layout.slots.forEach((slot) => {
+    const card = document.createElement("article");
+    card.className = `catalog-rune-slot is-${slot.kind || "unknown"}${slot.available_at_this_rarity ? "" : " is-unavailable"}`;
+    const slotNumber = document.createElement("span");
+    slotNumber.className = "catalog-rune-slot-number";
+    slotNumber.textContent = `Slot ${slot.position}`;
+
+    const marks = document.createElement("div");
+    marks.className = "catalog-rune-slot-marks";
+    const options = Array.isArray(slot.options) ? slot.options : [];
+    options.forEach((shape) => marks.append(makeRuneShapeMark(shape, "is-small")));
+    if (!marks.childElementCount) {
+      const unavailableMark = document.createElement("span");
+      unavailableMark.className = "catalog-rune-slot-lock";
+      unavailableMark.textContent = "×";
+      marks.append(unavailableMark);
+    }
+
+    const shapeLabel = document.createElement("strong");
+    shapeLabel.textContent = slot.kind === "random"
+      ? "Any shape"
+      : (options[0]?.label || "Unavailable");
+    const unlock = document.createElement("small");
+    unlock.textContent = slot.available_at_this_rarity
+      ? `Unlock +${slot.unlock_level}`
+      : "Not available at this rarity";
+    card.append(slotNumber, marks, shapeLabel, unlock);
+    slots.append(card);
+  });
+
+  const countList = document.createElement("div");
+  countList.className = "catalog-rune-counts";
+  Object.values(layout.possible_shape_counts || {}).forEach((count) => {
+    const chip = document.createElement("span");
+    const shape = (runeReference?.shapes || []).find((candidate) => candidate?.label === count?.label);
+    if (shape) chip.append(makeRuneShapeMark(shape, "is-tiny"));
+    const label = document.createElement("span");
+    label.textContent = `${count.label} ${runeCountLabel(count)}`;
+    chip.append(label);
+    countList.append(chip);
+  });
+
+  const details = document.createElement("details");
+  details.className = "catalog-rune-reference";
+  const detailsSummary = document.createElement("summary");
+  detailsSummary.textContent = "Compatible Rune rolls";
+  const poolGrid = document.createElement("div");
+  poolGrid.className = "catalog-rune-pools";
+  const usedShapeIds = new Set(
+    layout.slots
+      .filter((slot) => slot?.available_at_this_rarity)
+      .flatMap((slot) => (slot.options || []).map((shape) => shape.id)),
+  );
+  (runeReference?.shapes || []).forEach((shape) => {
+    if (usedShapeIds.has(shape.id)) appendRuneRollPool(poolGrid, shape);
+  });
+  const note = document.createElement("p");
+  note.className = "catalog-rune-note";
+  note.textContent = "Generic secondary rolls use 80–99% of the listed cap; a perfect roll reaches 100%.";
+  details.append(detailsSummary, poolGrid, note);
+
+  section.append(intro, slots, countList, details);
+  return section;
+}
+
+function renderRuneDetails(runeDetails, runeReference) {
+  if (!runeDetails) return null;
+  const section = createCatalogSection("Rune roll data");
+  section.classList.add("catalog-rune-section");
+  const facts = document.createElement("dl");
+  facts.className = "catalog-facts catalog-rune-facts";
+  appendCatalogFact(facts, "Shape", `${runeDetails.shape?.label || ""} · ${runeDetails.shape?.role || ""}`);
+  appendCatalogFact(
+    facts,
+    "Main stat",
+    (runeDetails.main_stats || []).map((stat) => `${stat.label} +${stat.value_label}`).join(", "),
+  );
+  appendCatalogFact(facts, "Rune Energy", formatNumber(runeDetails.energy || 0));
+  appendCatalogFact(facts, "Secondary attributes", formatNumber(runeDetails.secondary_lines || 0));
+  appendCatalogFact(facts, "Base CP", formatNumber(runeDetails.cp || 0));
+  if (runeDetails.focus) {
+    appendCatalogFact(
+      facts,
+      "Focused roll",
+      `${runeDetails.focus.label} ${runeDetails.focus.range_label}`,
+    );
+  }
+
+  const poolGrid = document.createElement("div");
+  poolGrid.className = "catalog-rune-pools";
+  const shape = (runeReference?.shapes || []).find((candidate) => candidate?.id === runeDetails.shape?.id);
+  if (shape) appendRuneRollPool(poolGrid, shape);
+  const note = document.createElement("p");
+  note.className = "catalog-rune-note";
+  note.textContent = runeDetails.focus
+    ? "Focused rolls use 60–124% of their base value; a perfect focused roll reaches 125%. Other lines use the shape pool below."
+    : "Generic secondary rolls use 80–99% of the listed cap; a perfect roll reaches 100%.";
+  section.append(facts, poolGrid, note);
+  return section;
+}
+
 function renderItemLogCatalogRecord(entry) {
   const record = document.createElement("article");
   record.className = "catalog-record catalog-itemlog-record";
@@ -4292,6 +4456,13 @@ function renderItemLogCatalogRecord(entry) {
   if (obtainMethods) record.append(obtainMethods);
   const carriedEffects = renderCarriedItemEffects(entry.carried_effects);
   if (carriedEffects) record.append(carriedEffects);
+  const runeSocketLayout = renderCarriedItemRuneLayout(
+    entry.rune_socket_layout,
+    state.itemlogData?.rune_reference,
+  );
+  if (runeSocketLayout) record.append(runeSocketLayout);
+  const runeDetails = renderRuneDetails(entry.rune_details, state.itemlogData?.rune_reference);
+  if (runeDetails) record.append(runeDetails);
 
   return record;
 }

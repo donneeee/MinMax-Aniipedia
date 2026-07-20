@@ -3083,6 +3083,273 @@ html[data-theme="pawney"] .catalog-record {
   font-weight: 700;
 }
 
+.catalog-rune-section {
+  display: grid;
+  gap: 12px;
+}
+
+.catalog-rune-layout-intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 5px 12px;
+  color: var(--muted);
+}
+
+.catalog-rune-layout-intro strong {
+  color: var(--text);
+}
+
+.catalog-rune-slots {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(104px, 1fr));
+  gap: 8px;
+}
+
+.catalog-rune-slot {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 112px;
+  align-content: start;
+  justify-items: center;
+  gap: 5px;
+  padding: 10px 8px;
+  overflow: hidden;
+  border: 1px solid rgba(var(--accent-rgb), 0.34);
+  border-radius: 8px;
+  background: rgba(var(--background-rgb), 0.48);
+  text-align: center;
+}
+
+.catalog-rune-slot.is-random {
+  border-style: dashed;
+  background: linear-gradient(145deg, rgba(var(--accent-rgb), 0.12), rgba(var(--background-rgb), 0.46));
+}
+
+.catalog-rune-slot.is-unavailable {
+  opacity: 0.46;
+  filter: grayscale(0.55);
+}
+
+.catalog-rune-slot-number {
+  justify-self: start;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.catalog-rune-slot-marks {
+  display: flex;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.catalog-rune-slot strong {
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+
+.catalog-rune-slot small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.catalog-rune-slot-lock {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.catalog-rune-shape {
+  display: inline-block;
+  width: 25px;
+  height: 25px;
+  flex: 0 0 auto;
+  border: 2px solid color-mix(in srgb, var(--accent) 70%, white);
+  background: color-mix(in srgb, var(--accent) 34%, transparent);
+  box-shadow: 0 0 9px rgba(var(--accent-rgb), 0.2);
+}
+
+.catalog-rune-shape--diamond {
+  width: 20px;
+  height: 20px;
+  margin: 3px;
+  transform: rotate(45deg);
+  border-radius: 3px;
+}
+
+.catalog-rune-shape--square {
+  border-radius: 5px;
+}
+
+.catalog-rune-shape--circle {
+  border-radius: 50%;
+}
+
+.catalog-rune-shape.is-small {
+  width: 20px;
+  height: 20px;
+}
+
+.catalog-rune-shape--diamond.is-small {
+  width: 16px;
+  height: 16px;
+}
+
+.catalog-rune-shape.is-tiny {
+  width: 13px;
+  height: 13px;
+  border-width: 1px;
+  box-shadow: none;
+}
+
+.catalog-rune-shape--diamond.is-tiny {
+  width: 10px;
+  height: 10px;
+  margin: 2px;
+}
+
+.catalog-rune-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.catalog-rune-counts > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 9px;
+  border: 1px solid rgba(var(--accent-rgb), 0.35);
+  border-radius: 999px;
+  color: var(--text);
+  background: rgba(var(--background-rgb), 0.4);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.catalog-rune-reference {
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+
+.catalog-rune-reference summary {
+  width: fit-content;
+  cursor: pointer;
+  color: var(--accent-2);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.catalog-rune-reference[open] summary {
+  margin-bottom: 10px;
+}
+
+.catalog-rune-pools {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 8px;
+}
+
+.catalog-rune-pool {
+  display: grid;
+  gap: 9px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(var(--accent-rgb), 0.3);
+  border-radius: 8px;
+  background: rgba(var(--background-rgb), 0.42);
+}
+
+.catalog-rune-pool > header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+}
+
+.catalog-rune-pool > header > span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.catalog-rune-pool-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.catalog-rune-pool-identity > div {
+  display: grid;
+  gap: 2px;
+}
+
+.catalog-rune-pool-identity small {
+  color: var(--muted);
+}
+
+.catalog-rune-rolls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.catalog-rune-rolls > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 7px;
+  border-radius: 5px;
+  background: rgba(var(--surface-rgb), 0.72);
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.catalog-rune-rolls strong {
+  color: var(--text);
+  font-size: inherit;
+}
+
+.catalog-rune-note {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.catalog-rune-facts {
+  max-width: none;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+@media (max-width: 1100px) {
+  .catalog-rune-slots {
+    grid-template-columns: repeat(3, minmax(104px, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .catalog-rune-slots {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .catalog-rune-pools {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .catalog-facts {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));

@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const ASSET_VERSION = "20260720-localization-v019";
+  const ASSET_VERSION = "20260720-localization-v020";
   const SUPPORTED_LANGUAGES = Object.freeze({
     en: { label: "English", htmlLang: "en" },
     "zh-CN": { label: "简体中文", htmlLang: "zh-CN" },
@@ -244,6 +244,12 @@
     ["Collapse filters", "收起筛选", "フィルターを折りたたむ", "필터 접기"],
     ["Sort Aniimo results", "Aniimo 结果排序", "Aniimo の結果を並べ替え", "Aniimo 결과 정렬"],
     ["HP", "生命", "HP", "HP"],
+    ["ATK", "攻击", "攻撃", "공격"],
+    ["P.DEF", "物理防御", "物理防御", "물리 방어"],
+    ["M.DEF", "魔法防御", "魔法防御", "마법 방어"],
+    ["REGEN", "回复", "回復", "회복"],
+    ["DMG reduction", "伤害减免", "ダメージ軽減", "피해 감소"],
+    ["CD Reduction", "冷却缩减", "クールダウン短縮", "재사용 대기시간 감소"],
     ["Attack", "攻击", "攻撃", "공격"],
     ["Magic Attack", "魔法攻击", "魔法攻撃", "마법 공격"],
     ["Break", "破韧", "ブレイク", "브레이크"],
@@ -260,6 +266,31 @@
     ["No core skill", "无核心技能", "コアスキルなし", "코어 스킬 없음"],
     ["How to obtain", "获取方式", "入手方法", "획득 방법"],
     ["Carried item effects", "携带道具效果", "携帯アイテム効果", "소지 아이템 효과"],
+    ["Rune slots", "符文槽", "ルーンスロット", "룬 슬롯"],
+    ["Rune roll data", "符文词条数据", "ルーン効果データ", "룬 옵션 데이터"],
+    ["Compatible Rune rolls", "可用符文词条", "装着可能なルーン効果", "호환 룬 옵션"],
+    ["Possible secondary rolls", "可出现的副词条", "出現可能なサブ効果", "가능한 보조 옵션"],
+    ["Shape", "形状", "形状", "모양"],
+    ["Main stat", "主属性", "メインステータス", "주 능력치"],
+    ["Rune Energy", "符文能量", "ルーンエナジー", "룬 에너지"],
+    ["Secondary attributes", "副词条数", "サブ効果数", "보조 옵션 수"],
+    ["Base CP", "基础战力", "基礎CP", "기본 CP"],
+    ["Focused roll", "定向词条", "特化効果", "집중 옵션"],
+    ["Main", "主属性", "メイン", "주 능력치"],
+    ["Slot", "槽位", "スロット", "슬롯"],
+    ["Unlock", "解锁", "解放", "해금"],
+    ["sockets at max", "个槽位，最高强化", "スロット・最大強化", "개 슬롯 · 최대 강화"],
+    ["Offense", "攻击", "攻撃", "공격"],
+    ["Support", "辅助", "サポート", "지원"],
+    ["Diamond", "钻石", "ひし形", "다이아몬드"],
+    ["Square", "方形", "四角", "사각형"],
+    ["Circle", "圆形", "円形", "원형"],
+    ["Any shape", "任意形状", "任意の形状", "모든 모양"],
+    ["Unavailable", "不可用", "利用不可", "이용 불가"],
+    ["Not available at this rarity", "此稀有度不可用", "このレアリティでは使用不可", "이 희귀도에서는 사용할 수 없음"],
+    ["Fixed slots are tied to this item. Any-shape slots roll separately on each copy.", "固定槽位由该道具决定；任意形状槽位会在每件道具上分别随机。", "固定スロットはアイテム固有です。任意形状スロットは個体ごとに別々に抽選されます。", "고정 슬롯은 아이템에 지정되며, 모든 모양 슬롯은 아이템마다 별도로 결정됩니다."],
+    ["Generic secondary rolls use 80–99% of the listed cap; a perfect roll reaches 100%.", "普通副词条为所列上限的 80–99%；完美词条达到 100%。", "通常のサブ効果は表示上限の80～99%、完璧な効果は100%に達します。", "일반 보조 옵션은 표시된 상한의 80~99%이며, 완벽 옵션은 100%에 도달합니다."],
+    ["Focused rolls use 60–124% of their base value; a perfect focused roll reaches 125%. Other lines use the shape pool below.", "定向词条为基础值的 60–124%；完美定向词条达到 125%。其他词条使用下方对应形状的词条池。", "特化効果は基準値の60～124%、完璧な特化効果は125%に達します。その他は下記の形状別プールから抽選されます。", "집중 옵션은 기준값의 60~124%이며, 완벽 집중 옵션은 125%에 도달합니다. 다른 옵션은 아래 모양별 목록을 사용합니다."],
     ["Base attributes", "基础属性", "基礎属性", "기본 속성"],
     ["Core effect", "核心效果", "コア効果", "핵심 효과"],
     ["Advanced effect", "高级效果", "上級効果", "고급 효과"],
@@ -379,6 +410,32 @@
     const habitatAreas = text.match(/^(.+) habitat areas$/);
     if (habitatAreas) {
       return `${translate(habitatAreas[1])} ${UI_TRANSLATIONS[activeLocale].get("habitat areas")}`;
+    }
+    const slot = text.match(/^Slot (\d+)$/);
+    if (slot) return `${UI_TRANSLATIONS[activeLocale].get("Slot") || "Slot"} ${slot[1]}`;
+    const runeUnlock = text.match(/^Unlock \+(\d+)$/);
+    if (runeUnlock) return `${UI_TRANSLATIONS[activeLocale].get("Unlock") || "Unlock"} +${runeUnlock[1]}`;
+    const socketSummary = text.match(/^(\d+) sockets at max \+(\d+)$/);
+    if (socketSummary) {
+      if (activeLocale === "zh-CN") return `${socketSummary[1]} 个槽位，最高强化 +${socketSummary[2]}`;
+      if (activeLocale === "ja") return `${socketSummary[1]} スロット・最大強化 +${socketSummary[2]}`;
+      if (activeLocale === "ko") return `${socketSummary[1]}개 슬롯 · 최대 강화 +${socketSummary[2]}`;
+    }
+    const runeMain = text.match(/^Main:\s*(.+)$/);
+    if (runeMain) {
+      const stats = runeMain[1].split(" / ").map((stat) => translate(stat));
+      return `${UI_TRANSLATIONS[activeLocale].get("Main") || "Main"}: ${stats.join(" / ")}`;
+    }
+    const dottedComposite = text.match(/^(.+?)\s·\s(.+)$/);
+    if (dottedComposite) {
+      const left = translate(dottedComposite[1]);
+      const right = translate(dottedComposite[2]);
+      if (left !== dottedComposite[1] || right !== dottedComposite[2]) return `${left} · ${right}`;
+    }
+    const namedRange = text.match(/^(.+?)\s([+-]?\d+(?:\.\d+)?%?(?:–[+-]?\d+(?:\.\d+)?%?)?)$/);
+    if (namedRange) {
+      const label = translate(namedRange[1]);
+      if (label !== namedRange[1]) return `${label} ${namedRange[2]}`;
     }
     const unlock = text.match(/^Unlock by obtaining (.+)$/);
     if (unlock) {
