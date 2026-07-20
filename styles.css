@@ -3317,6 +3317,24 @@ html[data-theme="pawney"] .catalog-record {
   font-size: 11px;
 }
 
+.catalog-rune-rolls > span.is-rare {
+  border: 1px solid rgba(122, 184, 255, 0.72);
+  background: linear-gradient(115deg, rgba(55, 179, 244, 0.2), rgba(195, 91, 245, 0.2));
+  box-shadow: 0 0 8px rgba(114, 179, 255, 0.14);
+}
+
+.catalog-rune-roll-rarity {
+  border-radius: 999px;
+  background: linear-gradient(115deg, #4fc8ff, #bf68f0);
+  color: #101722;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  padding: 3px 5px;
+  text-transform: uppercase;
+}
+
 .catalog-rune-rolls strong {
   color: var(--text);
   font-size: inherit;

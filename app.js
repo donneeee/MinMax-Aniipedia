@@ -1,8 +1,8 @@
 const DATA_URL = "./data/map_site_data.json?v=20260719-whisperwake-lumen-groups-v001";
 const CHECKLIST_URL = "./data/checklist_data.json?v=20260719-lumen-embers-v001";
-const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260720-rune-reference-v001";
+const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260720-rune-reference-v002";
 const ANIILOG_DATA_URL = "./data/aniilog_data.json?v=20260719-localization-v003";
-const APP_VERSION = "v0.4.00";
+const APP_VERSION = "v0.4.01";
 const GITHUB_COMMITS_URL = "https://api.github.com/repos/donneeee/MinMax-Aniipedia/commits?sha=main&per_page=30";
 const CHANGELOG_INTERNAL_MARKER_RE = /\[(?:skip changelog|internal)\]/i;
 const CHANGELOG_PUBLIC_ENTRY_LIMIT = 12;
@@ -4265,6 +4265,15 @@ function appendRuneRollPool(container, shape, title = "Possible secondary rolls"
   rolls.className = "catalog-rune-rolls";
   shape.secondary_rolls.forEach((roll) => {
     const chip = document.createElement("span");
+    const rollClass = roll.roll_class === "rare" ? "rare" : "standard";
+    chip.classList.add(`is-${rollClass}`);
+    if (roll.description) chip.title = roll.description;
+    if (rollClass === "rare") {
+      const rarity = document.createElement("small");
+      rarity.className = "catalog-rune-roll-rarity";
+      rarity.textContent = "Rare";
+      chip.append(rarity);
+    }
     const rollName = document.createElement("strong");
     rollName.textContent = roll.label;
     const range = document.createElement("span");
@@ -4349,7 +4358,7 @@ function renderCarriedItemRuneLayout(layout, runeReference) {
   });
   const note = document.createElement("p");
   note.className = "catalog-rune-note";
-  note.textContent = "Generic secondary rolls use 80–99% of the listed cap; a perfect roll reaches 100%.";
+  note.textContent = "Standard rolls use 80–99% of the listed cap, with a perfect roll at 100%. Rare rolls are fixed: every shape can roll Six Aptitude Stats +1, plus one shape-specific Zephyr Coast property.";
   details.append(detailsSummary, poolGrid, note);
 
   section.append(intro, slots, countList, details);
@@ -4386,8 +4395,8 @@ function renderRuneDetails(runeDetails, runeReference) {
   const note = document.createElement("p");
   note.className = "catalog-rune-note";
   note.textContent = runeDetails.focus
-    ? "Focused rolls use 60–124% of their base value; a perfect focused roll reaches 125%. Other lines use the shape pool below."
-    : "Generic secondary rolls use 80–99% of the listed cap; a perfect roll reaches 100%.";
+    ? "Focused rolls use 60–124% of their base value, with a perfect focused roll at 125%. Standard and fixed Rare lines use the shape pool below."
+    : "Standard rolls use 80–99% of the listed cap, with a perfect roll at 100%. Rare rolls are fixed and are marked below.";
   section.append(facts, poolGrid, note);
   return section;
 }
