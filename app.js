@@ -2,7 +2,7 @@ const DATA_URL = "./data/map_site_data.json?v=20260719-whisperwake-lumen-groups-
 const CHECKLIST_URL = "./data/checklist_data.json?v=20260719-lumen-embers-v001";
 const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260720-rune-reference-v002";
 const ANIILOG_DATA_URL = "./data/aniilog_data.json?v=20260719-localization-v003";
-const APP_VERSION = "v0.4.01";
+const APP_VERSION = "v0.4.02";
 const GITHUB_COMMITS_URL = "https://api.github.com/repos/donneeee/MinMax-Aniipedia/commits?sha=main&per_page=30";
 const CHANGELOG_INTERNAL_MARKER_RE = /\[(?:skip changelog|internal)\]/i;
 const CHANGELOG_PUBLIC_ENTRY_LIMIT = 12;
@@ -1943,13 +1943,81 @@ function itemlogExpeditionSources(entry) {
   return Array.isArray(entry?.rv_expedition_sources) ? entry.rv_expedition_sources : [];
 }
 
+const ITEMLOG_CATEGORY_COLLECTIONS = [
+  {
+    id: "collection:carried-items-and-runes",
+    label: "Carried Items & Runes",
+    categories: ["Carried Item", "Carried Item - Rune"],
+  },
+];
+const ITEMLOG_SOURCE_METHOD_PREFIX = "method:";
+
+function itemlogObtainMethods(entry) {
+  return Array.isArray(entry?.obtain_methods) ? entry.obtain_methods : [];
+}
+
+function itemlogCategoryCollection(category) {
+  return ITEMLOG_CATEGORY_COLLECTIONS.find((collection) => collection.id === category) || null;
+}
+
+function itemlogEntryMatchesCategory(entry, category) {
+  if (category === "all") return true;
+  const collection = itemlogCategoryCollection(category);
+  const entryCategory = catalogCategoryForEntry(entry, "itemlog");
+  return collection
+    ? collection.categories.includes(entryCategory)
+    : entryCategory === category;
+}
+
+function itemlogCategoryCount(category, entries = allCatalogEntriesForView("itemlog")) {
+  return entries.filter((entry) => itemlogEntryMatchesCategory(entry, category)).length;
+}
+
+function itemlogMethodSourceId(label) {
+  return `${ITEMLOG_SOURCE_METHOD_PREFIX}${String(label || "").trim()}`;
+}
+
+function itemlogMethodLabelFromSourceId(sourceId) {
+  const value = String(sourceId || "");
+  return value.startsWith(ITEMLOG_SOURCE_METHOD_PREFIX)
+    ? value.slice(ITEMLOG_SOURCE_METHOD_PREFIX.length)
+    : "";
+}
+
+function itemlogMethodSourceOptions(entries = allCatalogEntriesForView("itemlog")) {
+  const methods = new Map();
+  entries.forEach((entry) => {
+    const entryMethods = new Map();
+    itemlogObtainMethods(entry).forEach((method) => {
+      const label = String(method?.label || "").trim();
+      const key = label.toLowerCase();
+      if (!label || key === "rv park expedition" || key === "rv park expeditions") return;
+      if (!entryMethods.has(key)) entryMethods.set(key, label);
+    });
+    entryMethods.forEach((label, key) => {
+      const existing = methods.get(key);
+      if (existing) existing.count += 1;
+      else methods.set(key, { id: itemlogMethodSourceId(label), label, count: 1 });
+    });
+  });
+  return [...methods.values()].sort((left, right) => compareText(left.label, right.label));
+}
+
 function itemlogEntryMatchesFilters(entry) {
-  if (state.itemlogFilters.source !== "rv-expedition") return true;
-  const park = state.itemlogFilters.park;
-  const tier = state.itemlogFilters.tier;
-  return itemlogExpeditionSources(entry).some((source) => (
-    (park === "all" || source?.park === park)
-    && (tier === "all" || String(source?.duration_hours) === tier)
+  const selectedSource = state.itemlogFilters.source;
+  if (selectedSource === "all") return true;
+  if (selectedSource === "rv-expedition") {
+    const park = state.itemlogFilters.park;
+    const tier = state.itemlogFilters.tier;
+    return itemlogExpeditionSources(entry).some((source) => (
+      (park === "all" || source?.park === park)
+      && (tier === "all" || String(source?.duration_hours) === tier)
+    ));
+  }
+  const selectedMethod = itemlogMethodLabelFromSourceId(selectedSource).toLowerCase();
+  if (!selectedMethod) return false;
+  return itemlogObtainMethods(entry).some((method) => (
+    String(method?.label || "").trim().toLowerCase() === selectedMethod
   ));
 }
 
@@ -1959,9 +2027,9 @@ function catalogEntriesForView(view = state.sidebarView) {
     entries = entries.filter(aniilogEntryMatchesFilters);
   } else if (isCatalogView(view)) {
     const category = state.catalogCategory[view] || "all";
-    entries = category === "all"
-      ? entries
-      : entries.filter((entry) => catalogCategoryForEntry(entry, view) === category);
+    entries = view === "itemlog"
+      ? entries.filter((entry) => itemlogEntryMatchesCategory(entry, category))
+      : entries.filter((entry) => category === "all" || catalogCategoryForEntry(entry, view) === category);
     if (view === "itemlog") entries = entries.filter(itemlogEntryMatchesFilters);
   }
   const query = catalogSearchForView(view).trim().toLowerCase();
@@ -3066,16 +3134,36 @@ function renderCatalogCategoryToolbar(view) {
     select.className = "catalog-category-select";
     select.setAttribute("aria-label", "Item categories");
     const counts = new Map((state.itemlogData?.categories || []).map((category) => [category?.id, category?.count]));
-    categories.forEach((category) => {
+    const allEntries = allCatalogEntriesForView(view);
+    const appendCategoryOption = (parent, category, optionLabel = category) => {
       const option = document.createElement("option");
       option.value = category;
       option.selected = category === activeCategory;
-      const count = category === "all" ? allCatalogEntriesForView(view).length : counts.get(category);
+      const count = category === "all"
+        ? allEntries.length
+        : (itemlogCategoryCollection(category) ? itemlogCategoryCount(category, allEntries) : counts.get(category));
       option.textContent = category === "all"
         ? `All categories (${formatNumber(count)})`
-        : `${category} (${formatNumber(count)})`;
-      select.append(option);
+        : `${optionLabel} (${formatNumber(count)})`;
+      parent.append(option);
+    };
+    appendCategoryOption(select, "all");
+
+    const quickCategories = document.createElement("optgroup");
+    quickCategories.label = "Quick collections";
+    ITEMLOG_CATEGORY_COLLECTIONS.forEach((collection) => {
+      appendCategoryOption(quickCategories, collection.id, collection.label);
     });
+    appendCategoryOption(quickCategories, "Carried Item", "Carried Items");
+    appendCategoryOption(quickCategories, "Carried Item - Rune", "Runes");
+    select.append(quickCategories);
+
+    const allCategories = document.createElement("optgroup");
+    allCategories.label = "All categories";
+    categories
+      .filter((category) => !["all", "Carried Item", "Carried Item - Rune"].includes(category))
+      .forEach((category) => appendCategoryOption(allCategories, category));
+    select.append(allCategories);
     select.addEventListener("change", () => {
       state.catalogCategory[view] = select.value;
       refreshItemlogFilters();
@@ -3088,23 +3176,30 @@ function renderCatalogCategoryToolbar(view) {
     const sourceSelect = document.createElement("select");
     sourceSelect.className = "catalog-category-select";
     sourceSelect.setAttribute("aria-label", "Item source");
-    const sourceOptions = [
-      { id: "all", label: `All sources (${formatNumber(allCatalogEntriesForView(view).length)})` },
-      {
-        id: "rv-expedition",
-        label: `RV Park Expeditions (${formatNumber(state.itemlogData?.totals?.rv_expedition_items || 0)})`,
-      },
-    ];
-    sourceOptions.forEach((source) => {
+    const appendSourceOption = (parent, source) => {
       const option = document.createElement("option");
       option.value = source.id;
-      option.textContent = source.label;
+      option.textContent = `${source.label} (${formatNumber(source.count)})`;
       option.selected = state.itemlogFilters.source === source.id;
-      sourceSelect.append(option);
+      parent.append(option);
+    };
+    appendSourceOption(sourceSelect, { id: "all", label: "All sources", count: allEntries.length });
+
+    const featuredSources = document.createElement("optgroup");
+    featuredSources.label = "Featured sources";
+    appendSourceOption(featuredSources, {
+      id: "rv-expedition",
+      label: "RV Park Expeditions",
+      count: allEntries.filter((entry) => itemlogExpeditionSources(entry).length > 0).length,
     });
+    sourceSelect.append(featuredSources);
+
+    const acquisitionSources = document.createElement("optgroup");
+    acquisitionSources.label = "Acquisition sources";
+    itemlogMethodSourceOptions(allEntries).forEach((source) => appendSourceOption(acquisitionSources, source));
+    sourceSelect.append(acquisitionSources);
     sourceSelect.addEventListener("change", () => {
       state.itemlogFilters.source = sourceSelect.value;
-      if (sourceSelect.value === "rv-expedition") state.catalogCategory[view] = "all";
       if (sourceSelect.value !== "rv-expedition") {
         state.itemlogFilters.park = "all";
         state.itemlogFilters.tier = "all";
