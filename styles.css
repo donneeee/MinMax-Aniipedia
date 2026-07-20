@@ -2795,6 +2795,41 @@ body.catalog-view-active .sidebar .detail-panel {
   padding: clamp(16px, 2vw, 24px);
 }
 
+/* Carry preset motifs through the workspace while keeping game art unobscured. */
+html[data-theme="emberpup"] .map-panel,
+html[data-theme="emberpup"] .catalog-panel {
+  background-color: var(--background);
+  background-image:
+    radial-gradient(circle at 28px 38px, rgba(var(--accent-2-rgb), 0.09) 0 1.5px, transparent 2.75px),
+    radial-gradient(circle at 76px 94px, rgba(var(--accent-rgb), 0.065) 0 1px, transparent 2.5px);
+  background-size: 112px 142px;
+}
+
+html[data-theme="emberpup"] .catalog-record {
+  background-color: rgba(var(--panel-rgb), 0.92);
+  background-image:
+    radial-gradient(circle at 30px 42px, rgba(var(--accent-2-rgb), 0.055) 0 1.25px, transparent 2.5px),
+    radial-gradient(circle at 82px 104px, rgba(var(--accent-rgb), 0.04) 0 1px, transparent 2.25px);
+  background-size: 124px 156px;
+}
+
+html[data-theme="pawney"] .map-panel,
+html[data-theme="pawney"] .catalog-panel {
+  background-color: var(--background);
+  background-image:
+    linear-gradient(150deg, transparent 0 74%, rgba(var(--accent-rgb), 0.055) 75% 76%, transparent 77%),
+    linear-gradient(30deg, transparent 0 74%, rgba(var(--accent-2-rgb), 0.04) 75% 76%, transparent 77%);
+  background-size: 118px 118px;
+}
+
+html[data-theme="pawney"] .catalog-record {
+  background-color: rgba(var(--panel-rgb), 0.92);
+  background-image:
+    linear-gradient(150deg, transparent 0 74%, rgba(var(--accent-rgb), 0.035) 75% 76%, transparent 77%),
+    linear-gradient(30deg, transparent 0 74%, rgba(var(--accent-2-rgb), 0.025) 75% 76%, transparent 77%);
+  background-size: 132px 132px;
+}
+
 .catalog-itemlog-record {
   align-self: start;
   align-content: start;
