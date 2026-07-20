@@ -1,8 +1,8 @@
 const DATA_URL = "./data/map_site_data.json?v=20260719-whisperwake-lumen-groups-v001";
 const CHECKLIST_URL = "./data/checklist_data.json?v=20260719-lumen-embers-v001";
-const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260720-item-sales-v001";
+const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260720-item-canonical-v001";
 const ANIILOG_DATA_URL = "./data/aniilog_data.json?v=20260719-localization-v003";
-const APP_VERSION = "v0.4.04";
+const APP_VERSION = "v0.4.05";
 const GITHUB_COMMITS_URL = "https://api.github.com/repos/donneeee/MinMax-Aniipedia/commits?sha=main&per_page=30";
 const CHANGELOG_INTERNAL_MARKER_RE = /\[(?:skip changelog|internal)\]/i;
 const CHANGELOG_PUBLIC_ENTRY_LIMIT = 12;
@@ -2143,6 +2143,9 @@ function catalogEntrySearchText(entry) {
     entry?.catalog_category,
     entry?.quality,
     entry?.description,
+    entry?.variant_label,
+    entry?.hatch_outcomes,
+    entry?.detail_facts?.flatMap((fact) => [fact?.label, fact?.value]),
     entry?.obtain_methods?.flatMap((method) => [method?.label, method?.detail]),
     entry?.rv_expedition_sources?.flatMap((source) => [
       source?.park,
@@ -2656,8 +2659,12 @@ function createCatalogIndexRow(entry, selectedId, view, virtualIndex) {
       statValue === null ? "" : `${sort.label.replace(" (high to low)", "")} ${formatNumber(statValue, 0)}`,
     ].filter(Boolean).join(" - ");
   } else {
-    meta.textContent = entry.list_subtitle
+    const defaultSubtitle = entry.list_subtitle
       || [entry.type || "Item", entry.quality].filter(Boolean).join(" - ");
+    meta.textContent = entry.variant_label || defaultSubtitle;
+    if (entry.variant_label && defaultSubtitle) {
+      meta.title = `${defaultSubtitle} - ${entry.variant_label}`;
+    }
   }
   copy.append(name, meta);
   button.append(icon, copy);
