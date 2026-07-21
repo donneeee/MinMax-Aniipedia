@@ -290,6 +290,8 @@ button[aria-pressed="true"] {
 }
 
 .team-panel {
+  position: absolute;
+  inset: 0;
   display: flex;
   min-width: 0;
   min-height: 0;
@@ -6458,6 +6460,15 @@ button.catalog-item-reference {
     padding: 20px 12px;
   }
 
+  .map-panel.catalog-active .team-panel {
+    position: static;
+    width: 100%;
+    max-width: 100%;
+    min-height: min(620px, calc(100dvh - 24px));
+    overflow: visible;
+    padding: 14px 12px 24px;
+  }
+
   .catalog-panel,
   .catalog-heading,
   .catalog-record,
@@ -6892,6 +6903,15 @@ button.catalog-item-reference {
   }
 
   .catalog-panel {
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    padding: 14px;
+  }
+
+  .team-panel {
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
