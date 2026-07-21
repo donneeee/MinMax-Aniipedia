@@ -2,7 +2,7 @@ const DATA_URL = "./data/map_site_data.json?v=20260720-fixed-collectible-links-v
 const CHECKLIST_URL = "./data/checklist_data.json?v=20260719-lumen-embers-v001";
 const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260721-item-enrichment-v001";
 const ANIILOG_DATA_URL = "./data/aniilog_data.json?v=20260719-localization-v003";
-const APP_VERSION = "v0.4.18";
+const APP_VERSION = "v0.5.0";
 const GITHUB_COMMITS_URL = "https://api.github.com/repos/donneeee/MinMax-Aniipedia/commits?sha=main&per_page=30";
 const CHANGELOG_INTERNAL_MARKER_RE = /\[(?:skip changelog|internal)\]/i;
 const CHANGELOG_PUBLIC_ENTRY_LIMIT = 12;
@@ -303,6 +303,7 @@ const els = {
   checklistWorkspaceTab: document.querySelector("#checklistWorkspaceTab"),
   aniilogWorkspaceTab: document.querySelector("#aniilogWorkspaceTab"),
   itemlogWorkspaceTab: document.querySelector("#itemlogWorkspaceTab"),
+  teamWorkspaceTab: document.querySelector("#teamWorkspaceTab"),
   settingsButton: document.querySelector("#settingsButton"),
   settingsOverlay: document.querySelector("#settingsOverlay"),
   settingsCloseButton: document.querySelector("#settingsCloseButton"),
@@ -314,6 +315,8 @@ const els = {
   checklistWorkspace: document.querySelector("#checklistWorkspace"),
   catalogWorkspace: document.querySelector("#catalogWorkspace"),
   catalogSidebarContent: document.querySelector("#catalogSidebarContent"),
+  teamWorkspace: document.querySelector("#teamWorkspace"),
+  teamSidebarContent: document.querySelector("#teamSidebarContent"),
   trackingCount: document.querySelector("#trackingCount"),
   trackingList: document.querySelector("#trackingList"),
   checklistCount: document.querySelector("#checklistCount"),
@@ -336,6 +339,7 @@ const els = {
   mapPanel: document.querySelector(".map-panel"),
   mapSurface: document.querySelector("#mapSurface"),
   catalogPanel: document.querySelector("#catalogPanel"),
+  teamPanel: document.querySelector("#teamPanel"),
   mapViewport: document.querySelector("#mapViewport"),
   mapWorld: document.querySelector("#mapWorld"),
   mapTiles: document.querySelector("#mapTiles"),
@@ -1900,6 +1904,10 @@ function closeChangelog() {
 
 function isCatalogView(view = state.sidebarView) {
   return view === "aniilog" || view === "itemlog";
+}
+
+function isFullPanelView(view = state.sidebarView) {
+  return isCatalogView(view) || view === "team";
 }
 
 const ANIILOG_CLASS_ORDER = Object.freeze(["DPS", "REGEN", "BREAK", "HEALER", "SUPPORT"]);
@@ -5931,6 +5939,7 @@ function updateWorkspaceTabs() {
     checklist: { tab: els.checklistWorkspaceTab, panel: els.checklistWorkspace },
     aniilog: { tab: els.aniilogWorkspaceTab },
     itemlog: { tab: els.itemlogWorkspaceTab },
+    team: { tab: els.teamWorkspaceTab, panel: els.teamWorkspace },
   };
   Object.entries(workspaces).forEach(([view, workspace]) => {
     const selected = state.sidebarView === view;
@@ -5947,12 +5956,17 @@ function updateWorkspaceTabs() {
       state.sidebarView === "aniilog" ? "aniilogWorkspaceTab" : "itemlogWorkspaceTab",
     );
   }
-  els.mapSurface.hidden = catalogView;
+  const fullPanelView = isFullPanelView();
+  els.mapSurface.hidden = fullPanelView;
   els.catalogPanel.hidden = !catalogView;
-  els.mapPanel.classList.toggle("catalog-active", catalogView);
-  document.body.classList.toggle("catalog-view-active", catalogView);
+  els.teamPanel.hidden = state.sidebarView !== "team";
+  els.mapPanel.classList.toggle("catalog-active", fullPanelView);
+  document.body.classList.toggle("catalog-view-active", fullPanelView);
   if (catalogView) {
     renderCatalogPreview();
+  } else if (state.sidebarView === "team") {
+    window.AniipediaTeamBuilder?.show();
+    removeMobileCatalogStickyIdentity();
   } else {
     removeMobileCatalogStickyIdentity();
   }
@@ -5960,7 +5974,7 @@ function updateWorkspaceTabs() {
 
 function setSidebarView(view) {
   const previousView = state.sidebarView;
-  const nextView = ["map", "tracking", "checklist", "aniilog", "itemlog"].includes(view) ? view : "map";
+  const nextView = ["map", "tracking", "checklist", "aniilog", "itemlog", "team"].includes(view) ? view : "map";
   state.sidebarView = nextView;
   if (nextView === "aniilog") void ensureAniilogData();
   updateWorkspaceTabs();
@@ -5973,9 +5987,9 @@ function setSidebarView(view) {
     stopTrackingTicker();
     if (nextView === "checklist") renderChecklist();
   }
-  if (isCatalogView(nextView)) return;
+  if (isFullPanelView(nextView)) return;
   stabilizeViewport();
-  if (isCatalogView(previousView)) {
+  if (isFullPanelView(previousView)) {
     window.requestAnimationFrame(() => {
       if (!isCatalogView()) fitMap();
     });
@@ -8238,6 +8252,7 @@ function bindEvents() {
   els.checklistWorkspaceTab.addEventListener("click", () => setSidebarView("checklist"));
   els.aniilogWorkspaceTab.addEventListener("click", () => setSidebarView("aniilog"));
   els.itemlogWorkspaceTab.addEventListener("click", () => setSidebarView("itemlog"));
+  els.teamWorkspaceTab.addEventListener("click", () => setSidebarView("team"));
   els.appVersion.addEventListener("click", openChangelog);
   els.settingsButton.addEventListener("click", openSettings);
   els.settingsCloseButton.addEventListener("click", closeSettings);
@@ -8428,6 +8443,10 @@ async function init() {
     await window.AniipediaI18n.load("en");
   }
   window.AniipediaI18n.start();
+  window.AniipediaTeamBuilder?.mount({
+    sidebar: els.teamSidebarContent,
+    panel: els.teamPanel,
+  });
   bindEvents();
   const checklistRequest = fetch(CHECKLIST_URL)
     .then(async (response) => {

@@ -1,0 +1,892 @@
+(() => {
+  "use strict";
+
+  const ANIILOG_URL = "./data/aniilog_data.json?v=20260719-localization-v003";
+  const ITEMLOG_URL = "./data/itemlog_data.json?v=20260721-item-enrichment-v001";
+  const STORAGE_KEY = "minmax-aniipedia:team-builder:v1";
+  const TEAM_SIZE = 4;
+  const MAX_ACTIVE_SKILLS = 2;
+  const BUFF_PATTERN = /\b(increas|boost|amplif|bonus|restore|shield|resist|siphon|damage dealt|critical|break efficiency|invincible)/i;
+  const STAT_ORDER = ["HP", "Attack", "Magic Attack", "Break", "Defense", "Magic Defense", "EP Regen"];
+  const STAT_ALIASES = Object.freeze({
+    HP: "HP",
+    ATK: "Attack",
+    Attack: "Attack",
+    "Magic Attack": "Magic Attack",
+    BREAK: "Break",
+    Break: "Break",
+    "P.DEF": "Defense",
+    Defense: "Defense",
+    "M.DEF": "Magic Defense",
+    "Magic Defense": "Magic Defense",
+    REGEN: "EP Regen",
+    Regen: "EP Regen",
+    "EP Regen": "EP Regen",
+  });
+
+  let sidebar = null;
+  let panel = null;
+  let aniilog = null;
+  let itemlog = null;
+  let loadPromise = null;
+  let loadError = "";
+  let model = loadModel();
+
+  function defaultMember() {
+    return {
+      aniimoId: "",
+      stage: 7,
+      activeSkills: ["", ""],
+      switchSkill: "",
+      carriedItemId: "",
+      runes: {},
+    };
+  }
+
+  function defaultModel() {
+    return {
+      mode: "standard",
+      activeSlot: 0,
+      members: Array.from({ length: TEAM_SIZE }, defaultMember),
+      scenarioToggles: {},
+    };
+  }
+
+  function normalizeMember(value) {
+    const base = defaultMember();
+    const activeSkills = Array.isArray(value?.activeSkills)
+      ? value.activeSkills.slice(0, MAX_ACTIVE_SKILLS).map((skill) => String(skill || ""))
+      : base.activeSkills;
+    while (activeSkills.length < MAX_ACTIVE_SKILLS) activeSkills.push("");
+    return {
+      ...base,
+      aniimoId: String(value?.aniimoId || ""),
+      stage: Math.min(7, Math.max(1, Number(value?.stage) || 7)),
+      activeSkills,
+      switchSkill: String(value?.switchSkill || ""),
+      carriedItemId: String(value?.carriedItemId || ""),
+      runes: value?.runes && typeof value.runes === "object" ? value.runes : {},
+    };
+  }
+
+  function loadModel() {
+    try {
+      const saved = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || "null");
+      if (!saved || typeof saved !== "object") return defaultModel();
+      const members = Array.isArray(saved.members) ? saved.members.slice(0, TEAM_SIZE).map(normalizeMember) : [];
+      while (members.length < TEAM_SIZE) members.push(defaultMember());
+      return {
+        mode: saved.mode === "coop" ? "coop" : "standard",
+        activeSlot: Math.min(TEAM_SIZE - 1, Math.max(0, Number(saved.activeSlot) || 0)),
+        members,
+        scenarioToggles: saved.scenarioToggles && typeof saved.scenarioToggles === "object"
+          ? saved.scenarioToggles
+          : {},
+      };
+    } catch {
+      return defaultModel();
+    }
+  }
+
+  function persist() {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(model));
+    } catch {
+      // The builder remains usable for the current visit if storage is unavailable.
+    }
+  }
+
+  function translate(value) {
+    return window.AniipediaI18n?.translate(value) || String(value || "");
+  }
+
+  function el(tag, className = "", text = "") {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== "") node.textContent = text;
+    return node;
+  }
+
+  function button(text, className, onClick) {
+    const node = el("button", className, text);
+    node.type = "button";
+    node.addEventListener("click", onClick);
+    return node;
+  }
+
+  function selectControl(labelText, options, value, onChange, className = "") {
+    const label = el("label", `team-field ${className}`.trim());
+    const caption = el("span", "team-field-label", labelText);
+    const select = el("select", "team-select");
+    options.forEach((option) => {
+      const item = document.createElement("option");
+      item.value = option.value;
+      item.textContent = option.label;
+      item.disabled = Boolean(option.disabled);
+      item.selected = String(option.value) === String(value || "");
+      select.append(item);
+    });
+    select.addEventListener("change", () => onChange(select.value));
+    label.append(caption, select);
+    return label;
+  }
+
+  function naturalCompare(left, right) {
+    return String(left || "").localeCompare(String(right || ""), undefined, {
+      numeric: true,
+      sensitivity: "base",
+    });
+  }
+
+  function aniimoEntries() {
+    return Array.isArray(aniilog?.entries) ? aniilog.entries : [];
+  }
+
+  function carriedItems() {
+    return (itemlog?.entries || [])
+      .filter((entry) => entry?.catalog_category === "Carried Item" && entry?.rune_socket_layout)
+      .sort((left, right) => naturalCompare(left.name, right.name) || naturalCompare(left.quality, right.quality));
+  }
+
+  function runeItems() {
+    return (itemlog?.entries || [])
+      .filter((entry) => entry?.rune_details)
+      .sort((left, right) => {
+        const qualityDifference = Number(left?.rune_details?.tier?.quality || 0) - Number(right?.rune_details?.tier?.quality || 0);
+        return qualityDifference || naturalCompare(left.name, right.name);
+      });
+  }
+
+  function aniimoFor(member) {
+    return aniimoEntries().find((entry) => entry.id === member?.aniimoId) || null;
+  }
+
+  function carriedItemFor(member) {
+    return carriedItems().find((entry) => entry.id === member?.carriedItemId) || null;
+  }
+
+  function skillKey(skill) {
+    return String(skill?.localization_uids?.name || skill?.name || "");
+  }
+
+  function combatSkills(entry) {
+    return (entry?.skills || []).filter((skill) => skill?.group === "Combat");
+  }
+
+  function coreSkills(entry) {
+    return combatSkills(entry).filter((skill) => skill?.core);
+  }
+
+  function skillFor(entry, key) {
+    return combatSkills(entry).find((skill) => skillKey(skill) === String(key || "")) || null;
+  }
+
+  function localizedAniimoLabel(entry) {
+    if (!entry) return translate("Empty slot");
+    const name = translate(entry.name);
+    const form = translate(entry.form_label || "Basic");
+    return `${name} — ${form}`;
+  }
+
+  function aniimoOptions() {
+    return [
+      { value: "", label: translate("Choose an Aniimo") },
+      ...aniimoEntries()
+        .slice()
+        .sort((left, right) => naturalCompare(left.name, right.name) || naturalCompare(left.form_label, right.form_label))
+        .map((entry) => ({ value: entry.id, label: localizedAniimoLabel(entry) })),
+    ];
+  }
+
+  function resetMemberLoadout(member, entry) {
+    const skills = combatSkills(entry);
+    const nonCore = skills.filter((skill) => !skill.core);
+    const defaults = [...nonCore, ...skills].slice(0, MAX_ACTIVE_SKILLS).map(skillKey);
+    while (defaults.length < MAX_ACTIVE_SKILLS) defaults.push("");
+    member.activeSkills = defaults;
+    member.switchSkill = coreSkills(entry)
+      .map(skillKey)
+      .find((key) => !defaults.includes(key)) || "";
+    member.stage = 7;
+    member.carriedItemId = "";
+    member.runes = {};
+  }
+
+  function validateMember(member) {
+    const entry = aniimoFor(member);
+    if (!entry) {
+      Object.assign(member, defaultMember(), { aniimoId: member.aniimoId });
+      return;
+    }
+    const keys = new Set(combatSkills(entry).map(skillKey));
+    const seen = new Set();
+    member.activeSkills = member.activeSkills.map((key) => {
+      if (!keys.has(key) || seen.has(key)) return "";
+      seen.add(key);
+      return key;
+    });
+    const allowedSwitch = new Set(coreSkills(entry).map(skillKey));
+    if (!allowedSwitch.has(member.switchSkill) || seen.has(member.switchSkill)) member.switchSkill = "";
+    const item = carriedItemFor(member);
+    if (!item) {
+      member.carriedItemId = "";
+      member.runes = {};
+    }
+  }
+
+  async function ensureData() {
+    if (aniilog && itemlog) return;
+    if (loadPromise) return loadPromise;
+    loadPromise = Promise.all([
+      fetch(ANIILOG_URL).then((response) => {
+        if (!response.ok) throw new Error("Could not load Aniimo data");
+        return response.json();
+      }),
+      fetch(ITEMLOG_URL).then((response) => {
+        if (!response.ok) throw new Error("Could not load item data");
+        return response.json();
+      }),
+    ]).then(([aniimoPayload, itemPayload]) => {
+      if (!Array.isArray(aniimoPayload?.entries) || !Array.isArray(itemPayload?.entries)) {
+        throw new Error("Team Builder data has an invalid format");
+      }
+      aniilog = aniimoPayload;
+      itemlog = itemPayload;
+      window.AniipediaI18n?.registerDisplay(aniilog.localizations);
+      model.members.forEach(validateMember);
+      loadError = "";
+    }).catch((error) => {
+      loadError = error instanceof Error ? error.message : String(error);
+    }).finally(() => {
+      loadPromise = null;
+    });
+    return loadPromise;
+  }
+
+  function setMode(mode) {
+    model.mode = mode === "coop" ? "coop" : "standard";
+    persist();
+    render();
+  }
+
+  function renderModeSwitch(compact = false) {
+    const group = el("div", compact ? "team-mode-switch team-mode-switch--compact" : "team-mode-switch");
+    group.setAttribute("role", "tablist");
+    [
+      { id: "standard", label: "Standard" },
+      { id: "coop", label: "Co-op" },
+    ].forEach((mode) => {
+      const control = button(mode.label, "team-mode-button", () => setMode(mode.id));
+      control.setAttribute("aria-selected", String(model.mode === mode.id));
+      control.setAttribute("role", "tab");
+      group.append(control);
+    });
+    return group;
+  }
+
+  function slotRole(index) {
+    if (model.mode !== "coop") return `${translate("Team slot")} ${index + 1}`;
+    return index === 0 ? translate("Main Aniimo") : `${translate("Core skill ally")} ${index}`;
+  }
+
+  function renderSidebarSlot(member, index) {
+    const entry = aniimoFor(member);
+    const card = el("article", "team-sidebar-slot");
+    if (model.activeSlot === index) card.classList.add("is-active");
+    card.tabIndex = 0;
+    card.setAttribute("role", "button");
+    card.setAttribute("aria-pressed", String(model.activeSlot === index));
+    const activate = () => {
+      model.activeSlot = index;
+      persist();
+      render();
+    };
+    card.addEventListener("click", activate);
+    card.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      activate();
+    });
+
+    const header = el("div", "team-sidebar-slot-header");
+    const role = el("span", "team-sidebar-slot-role", slotRole(index));
+    const stage = el("span", "team-sidebar-slot-stage", entry ? `${translate("Tier")} ${member.stage}` : "");
+    header.append(role, stage);
+
+    const identity = el("div", "team-sidebar-slot-identity");
+    if (entry?.icon) {
+      const image = el("img", "team-sidebar-slot-icon");
+      image.src = entry.icon;
+      image.alt = "";
+      identity.append(image);
+    } else {
+      identity.append(el("span", "team-sidebar-slot-icon team-sidebar-slot-icon--empty", String(index + 1)));
+    }
+    const copy = el("div", "team-sidebar-slot-copy");
+    copy.append(
+      el("strong", "", entry ? translate(entry.name) : translate("Empty slot")),
+      el("small", "", entry ? translate(entry.form_label || "Basic") : translate("Choose an Aniimo below")),
+    );
+    identity.append(copy);
+
+    const select = el("select", "team-sidebar-select");
+    aniimoOptions().forEach((option) => {
+      const item = document.createElement("option");
+      item.value = option.value;
+      item.textContent = option.label;
+      item.selected = option.value === member.aniimoId;
+      select.append(item);
+    });
+    select.setAttribute("aria-label", slotRole(index));
+    select.addEventListener("click", (event) => event.stopPropagation());
+    select.addEventListener("change", (event) => {
+      event.stopPropagation();
+      member.aniimoId = select.value;
+      resetMemberLoadout(member, aniimoFor(member));
+      model.activeSlot = index;
+      persist();
+      render();
+    });
+    card.append(header, identity, select);
+    return card;
+  }
+
+  function renderSidebar() {
+    sidebar.textContent = "";
+    const heading = el("div", "team-sidebar-heading");
+    heading.append(el("h2", "", "Team Builder"));
+    const reset = button("Clear", "team-clear-button", () => {
+      if (!window.confirm(translate("Clear this saved team?"))) return;
+      model = defaultModel();
+      persist();
+      render();
+    });
+    heading.append(reset);
+    sidebar.append(heading, renderModeSwitch(true));
+    const description = el(
+      "p",
+      "team-sidebar-description",
+      model.mode === "coop"
+        ? "Control one main Aniimo and bring the Core skills of three allies."
+        : "Build a four-Aniimo team with two active skills and an optional Core switch-skill each.",
+    );
+    sidebar.append(description);
+    const slots = el("div", "team-sidebar-slots");
+    model.members.forEach((member, index) => slots.append(renderSidebarSlot(member, index)));
+    sidebar.append(slots);
+  }
+
+  function renderTeamOverview() {
+    const section = el("section", "team-overview");
+    const heading = el("div", "team-section-heading");
+    heading.append(el("div", "", "Team overview"), el("small", "", model.mode === "coop" ? "1 main + 3 Core allies" : "Up to 4 Aniimo"));
+    section.append(heading);
+    const grid = el("div", "team-overview-grid");
+    model.members.forEach((member, index) => {
+      const entry = aniimoFor(member);
+      const card = button("", "team-overview-card", () => {
+        model.activeSlot = index;
+        persist();
+        render();
+      });
+      if (model.activeSlot === index) card.classList.add("is-active");
+      if (entry?.icon) {
+        const image = el("img", "team-overview-icon");
+        image.src = entry.icon;
+        image.alt = "";
+        card.append(image);
+      } else {
+        card.append(el("span", "team-overview-icon team-overview-icon--empty", "+"));
+      }
+      const copy = el("span", "team-overview-copy");
+      copy.append(
+        el("small", "", slotRole(index)),
+        el("strong", "", entry ? translate(entry.name) : translate("Empty slot")),
+        el("span", "", entry ? translate(entry.form_label || "Basic") : translate("Select a team member")),
+      );
+      card.append(copy);
+      grid.append(card);
+    });
+    section.append(grid);
+    return section;
+  }
+
+  function renderSkillLoadout(member, entry, supportOnly) {
+    const section = el("section", "team-config-section");
+    const heading = el("div", "team-section-heading");
+    heading.append(el("div", "", supportOnly ? "Co-op Core access" : "Skill loadout"));
+    section.append(heading);
+    const skills = combatSkills(entry);
+    const cores = coreSkills(entry);
+
+    if (supportOnly) {
+      if (!cores.length) {
+        section.append(el("p", "team-empty-copy", "This Aniimo has no Core skill in the current data."));
+        return section;
+      }
+      cores.forEach((skill) => section.append(renderSkillSummary(skill, "Core skill")));
+      return section;
+    }
+
+    const grid = el("div", "team-field-grid");
+    for (let position = 0; position < MAX_ACTIVE_SKILLS; position += 1) {
+      const otherPosition = position === 0 ? 1 : 0;
+      const options = [
+        { value: "", label: "Choose a skill" },
+        ...skills.map((skill) => ({
+          value: skillKey(skill),
+          label: `${skill.core ? `${translate("Core")} · ` : ""}${translate(skill.name)}`,
+          disabled: member.activeSkills[otherPosition] === skillKey(skill),
+        })),
+      ];
+      grid.append(selectControl(`${translate("Active skill")} ${position + 1}`, options, member.activeSkills[position], (value) => {
+        member.activeSkills[position] = value;
+        if (member.switchSkill === value) member.switchSkill = "";
+        validateMember(member);
+        persist();
+        render();
+      }));
+    }
+    const availableCore = cores.filter((skill) => !member.activeSkills.includes(skillKey(skill)));
+    const switchOptions = [
+      { value: "", label: cores.length ? "No switch-skill" : "No Core skill available" },
+      ...availableCore.map((skill) => ({ value: skillKey(skill), label: translate(skill.name) })),
+    ];
+    grid.append(selectControl("Switch-skill (Core)", switchOptions, member.switchSkill, (value) => {
+      member.switchSkill = value;
+      validateMember(member);
+      persist();
+      render();
+    }, "team-field--wide"));
+    section.append(grid);
+
+    const selected = [...member.activeSkills, member.switchSkill]
+      .filter(Boolean)
+      .map((key) => skillFor(entry, key))
+      .filter(Boolean);
+    if (selected.length) {
+      const cards = el("div", "team-skill-cards");
+      selected.forEach((skill) => cards.append(renderSkillSummary(skill, member.switchSkill === skillKey(skill) ? "Switch-skill" : "Active")));
+      section.append(cards);
+    }
+    return section;
+  }
+
+  function renderSkillSummary(skill, slotLabel) {
+    const card = el("article", "team-skill-summary");
+    if (skill?.icon) {
+      const icon = el("img", "team-skill-icon");
+      icon.src = skill.icon;
+      icon.alt = "";
+      card.append(icon);
+    }
+    const copy = el("div", "team-skill-copy");
+    const top = el("div", "team-skill-top");
+    top.append(el("strong", "", translate(skill?.name || "Skill")), el("span", "team-pill", slotLabel));
+    copy.append(top);
+    const meta = [
+      Number.isFinite(Number(skill?.combat?.might)) ? `${translate("Might")} ${skill.combat.might}` : "",
+      Number.isFinite(Number(skill?.combat?.ep_cost)) ? `${translate("EP Cost")} ${skill.combat.ep_cost}` : "",
+      Number.isFinite(Number(skill?.combat?.cooldown)) ? `${translate("Cooldown")} ${skill.combat.cooldown}s` : "",
+    ].filter(Boolean).join(" · ");
+    copy.append(el("small", "", meta));
+    card.append(copy);
+    return card;
+  }
+
+  function renderMemberIdentity(member, entry, index) {
+    const section = el("section", "team-member-identity");
+    if (entry?.icon) {
+      const image = el("img", "team-member-icon");
+      image.src = entry.icon;
+      image.alt = "";
+      section.append(image);
+    }
+    const copy = el("div", "team-member-copy");
+    copy.append(
+      el("p", "team-eyebrow", slotRole(index)),
+      el("h2", "", translate(entry.name)),
+      el("p", "team-member-meta", `${translate(entry.form_label || "Basic")} · ${translate(entry.role || "Other")}`),
+    );
+    section.append(copy);
+    const stageOptions = Array.from({ length: Number(aniilog?.aniimo_progression?.max_stage || 7) }, (_, offset) => ({
+      value: String(offset + 1),
+      label: `${translate("Tier")} ${offset + 1}`,
+    }));
+    section.append(selectControl("Resonance Training", stageOptions, String(member.stage), (value) => {
+      member.stage = Number(value);
+      persist();
+      render();
+    }, "team-stage-field"));
+    return section;
+  }
+
+  function renderEquipment(member) {
+    const section = el("section", "team-config-section");
+    const heading = el("div", "team-section-heading");
+    heading.append(el("div", "", "Carried item & runes"));
+    section.append(heading);
+    const options = [
+      { value: "", label: "No carried item" },
+      ...carriedItems().map((entry) => ({
+        value: entry.id,
+        label: `${translate(entry.name)} · ${translate(entry.quality || "")}`,
+      })),
+    ];
+    section.append(selectControl("Carried item", options, member.carriedItemId, (value) => {
+      member.carriedItemId = value;
+      member.runes = {};
+      persist();
+      render();
+    }));
+    const item = carriedItemFor(member);
+    if (!item) return section;
+
+    const effects = el("div", "team-equipment-effects");
+    (item.carried_effects?.base_attributes || []).forEach((effect) => effects.append(el("span", "team-pill team-pill--stat", effect)));
+    (item.carried_effects?.core_effects || []).forEach((effect) => effects.append(el("span", "team-pill", `${translate("Core")}: ${translate(effect)}`)));
+    (item.carried_effects?.advanced_effects || []).forEach((effect) => effects.append(el("span", "team-pill", `${translate("Advanced")}: ${translate(effect)}`)));
+    if (effects.childElementCount) section.append(effects);
+
+    const sockets = el("div", "team-rune-sockets");
+    const availableSlots = (item.rune_socket_layout?.slots || []).filter((slot) => slot.available_at_this_rarity);
+    availableSlots.forEach((slot) => sockets.append(renderRuneSocket(member, slot)));
+    if (availableSlots.length) section.append(sockets);
+    return section;
+  }
+
+  function renderRuneSocket(member, slot) {
+    const card = el("article", "team-rune-socket");
+    const shapes = new Set((slot.options || []).map((option) => option.id));
+    const compatible = runeItems().filter((entry) => shapes.has(entry?.rune_details?.shape?.id));
+    const selection = member.runes[String(slot.position)] || { itemId: "", rolls: [] };
+    const header = el("div", "team-rune-socket-header");
+    header.append(
+      el("strong", "", `${translate("Slot")} ${slot.position}`),
+      el("span", "team-pill", (slot.options || []).map((option) => `${translate(option.label)} · ${translate(option.role)}`).join(" / ")),
+    );
+    card.append(header);
+    const runeSelect = el("select", "team-select");
+    [{ value: "", label: "No rune" }, ...compatible.map((entry) => ({
+      value: entry.id,
+      label: `${translate(entry.name)} · ${translate(entry.quality)}`,
+    }))].forEach((option) => {
+      const item = document.createElement("option");
+      item.value = option.value;
+      item.textContent = option.label;
+      item.selected = option.value === selection.itemId;
+      runeSelect.append(item);
+    });
+    runeSelect.addEventListener("change", () => {
+      member.runes[String(slot.position)] = { itemId: runeSelect.value, rolls: [] };
+      persist();
+      render();
+    });
+    card.append(runeSelect);
+    const rune = compatible.find((entry) => entry.id === selection.itemId);
+    if (!rune) return card;
+    const main = (rune.rune_details?.main_stats || []).map((stat) => `${translate(stat.label)} +${stat.value_label}`).join(" · ");
+    card.append(el("p", "team-rune-main", `${translate("Main stat")}: ${main}`));
+
+    const lineCount = Number(rune.rune_details?.secondary_lines || 0);
+    for (let index = 0; index < lineCount; index += 1) {
+      const current = selection.rolls?.[index] || { attributeId: "", mode: "perfect" };
+      const row = el("div", "team-rune-roll-row");
+      const rollSelect = el("select", "team-select");
+      const used = new Set((selection.rolls || []).filter((_, rollIndex) => rollIndex !== index).map((roll) => String(roll.attributeId)));
+      [{ attribute_id: "", label: "No secondary roll", range_label: "" }, ...(rune.rune_details?.secondary_rolls || [])]
+        .forEach((roll) => {
+          const option = document.createElement("option");
+          option.value = String(roll.attribute_id || "");
+          option.textContent = roll.attribute_id ? `${translate(roll.label)} · ${roll.range_label}` : roll.label;
+          option.disabled = used.has(option.value);
+          option.selected = option.value === String(current.attributeId || "");
+          rollSelect.append(option);
+        });
+      rollSelect.setAttribute("aria-label", `${translate("Secondary roll")} ${index + 1}`);
+      rollSelect.addEventListener("change", () => {
+        selection.rolls ||= [];
+        selection.rolls[index] = { attributeId: rollSelect.value, mode: current.mode || "perfect" };
+        member.runes[String(slot.position)] = selection;
+        persist();
+        render();
+      });
+      const valueMode = el("select", "team-select team-roll-mode");
+      [
+        { value: "minimum", label: "Minimum" },
+        { value: "perfect", label: "Perfect" },
+      ].forEach((mode) => {
+        const option = document.createElement("option");
+        option.value = mode.value;
+        option.textContent = mode.label;
+        option.selected = mode.value === current.mode;
+        valueMode.append(option);
+      });
+      valueMode.disabled = !current.attributeId;
+      valueMode.addEventListener("change", () => {
+        selection.rolls ||= [];
+        selection.rolls[index] = { attributeId: current.attributeId, mode: valueMode.value };
+        member.runes[String(slot.position)] = selection;
+        persist();
+        render();
+      });
+      row.append(rollSelect, valueMode);
+      card.append(row);
+    }
+    return card;
+  }
+
+  function progressionForStage(stageNumber) {
+    const stages = aniilog?.aniimo_progression?.stages || [];
+    const eligible = stages.filter((stage) => Number(stage.stage) <= stageNumber);
+    const training = eligible.slice().reverse().find((stage) => Array.isArray(stage.training_steps) && stage.training_steps.length);
+    return {
+      trainingSteps: training?.training_steps || [],
+      bonuses: eligible.map((stage) => stage.stage_bonus).filter(Boolean),
+    };
+  }
+
+  function addFlat(target, label, value, source) {
+    const stat = STAT_ALIASES[label];
+    const number = Number(value);
+    if (!stat || !Number.isFinite(number)) return false;
+    target.flat[stat] = (target.flat[stat] || 0) + number;
+    target.sources.push({ stat, value: number, source });
+    return true;
+  }
+
+  function addModifier(target, label, value, isPercent, source) {
+    if (label === "Six Aptitude Stats") {
+      ["HP", "Attack", "Break", "Defense", "Magic Defense", "EP Regen"].forEach((stat) => addFlat(target, stat, value, source));
+      return;
+    }
+    if (!isPercent && addFlat(target, label, value, source)) return;
+    const key = String(label || "Modifier");
+    target.percent[key] = (target.percent[key] || 0) + Number(value || 0);
+  }
+
+  function memberStats(member, entry) {
+    const result = { base: {}, flat: {}, percent: {}, sources: [], bonuses: [] };
+    (entry?.stats || []).forEach((stat) => {
+      result.base[stat.label] = Number(stat.value || 0);
+    });
+    const progression = progressionForStage(member.stage);
+    progression.trainingSteps.forEach((step) => {
+      (step.stat_gains || []).forEach((gain) => addFlat(result, gain.label, gain.value, `${translate("Training level")} ${step.level}`));
+    });
+    result.bonuses = progression.bonuses;
+
+    const carried = carriedItemFor(member);
+    (carried?.carried_effects?.base_attributes || []).forEach((effect) => {
+      const match = String(effect).match(/^(.+?)\s*([+-]\d+(?:\.\d+)?)(%)?$/);
+      if (!match) return;
+      addModifier(result, match[1].trim(), Number(match[2]) / (match[3] ? 100 : 1), Boolean(match[3]), translate(carried.name));
+    });
+    Object.values(member.runes || {}).forEach((selection) => {
+      const rune = runeItems().find((entry) => entry.id === selection?.itemId);
+      if (!rune) return;
+      (rune.rune_details?.main_stats || []).forEach((stat) => {
+        addModifier(result, stat.label, stat.value, stat.is_percent, translate(rune.name));
+      });
+      (selection.rolls || []).forEach((chosen) => {
+        const roll = (rune.rune_details?.secondary_rolls || [])
+          .find((candidate) => String(candidate.attribute_id) === String(chosen.attributeId));
+        if (!roll) return;
+        const value = chosen.mode === "minimum" ? roll.minimum : roll.maximum;
+        addModifier(result, roll.label, value, roll.is_percent, `${translate(rune.name)} · ${translate("Secondary roll")}`);
+      });
+    });
+    return result;
+  }
+
+  function renderStats(member, entry) {
+    const section = el("section", "team-config-section team-stats-section");
+    const heading = el("div", "team-section-heading");
+    heading.append(el("div", "", "Confirmed build stats"), el("small", "", `Tier ${member.stage}`));
+    section.append(heading);
+    const stats = memberStats(member, entry);
+    const grid = el("div", "team-stat-grid");
+    STAT_ORDER.forEach((label) => {
+      if (!Object.hasOwn(stats.base, label)) return;
+      const base = Number(stats.base[label] || 0);
+      const added = Number(stats.flat[label] || 0);
+      const card = el("article", "team-stat-card");
+      card.append(
+        el("span", "team-stat-label", translate(label === "EP Regen" ? "Regen" : label)),
+        el("strong", "", formatValue(base + added, false)),
+        el("small", "", added ? `${formatValue(base, false)} + ${formatValue(added, false)}` : translate("Base value")),
+      );
+      grid.append(card);
+    });
+    section.append(grid);
+    if (Object.keys(stats.percent).length) {
+      const modifiers = el("div", "team-modifier-list");
+      Object.entries(stats.percent).forEach(([label, value]) => {
+        modifiers.append(el("span", "team-pill team-pill--stat", `${translate(label)} +${formatValue(value, true)}`));
+      });
+      section.append(modifiers);
+    }
+    if (stats.bonuses.length) {
+      const bonuses = el("div", "team-stage-bonuses");
+      bonuses.append(el("strong", "", "Tier bonuses"));
+      stats.bonuses.forEach((bonus) => bonuses.append(el("span", "team-pill", bonus)));
+      section.append(bonuses);
+    }
+    section.append(el(
+      "p",
+      "team-data-note",
+      "Totals combine listed base values, confirmed flat training gains, rune main stats, and selected rune rolls. Tier bonuses and conditional effects remain separate so their scaling is not guessed.",
+    ));
+    return section;
+  }
+
+  function formatValue(value, percent) {
+    const number = Number(value || 0);
+    const display = Number.isInteger(number) ? String(number) : number.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+    return percent ? `${(number * 100).toFixed(2).replace(/0+$/, "").replace(/\.$/, "")}%` : display;
+  }
+
+  function effectCandidates() {
+    const effects = [];
+    model.members.forEach((member, index) => {
+      const entry = aniimoFor(member);
+      if (!entry) return;
+      const append = (kind, name, description, activation) => {
+        if (!description || !BUFF_PATTERN.test(description)) return;
+        const id = `${index}:${kind}:${name}`;
+        effects.push({ id, slot: index, source: translate(entry.name), kind, name: translate(name), description: translate(description), activation });
+      };
+      (entry.traits || []).forEach((trait) => append("Trait", trait.name, trait.description, "Passive"));
+      if (model.mode === "coop" && index > 0) {
+        coreSkills(entry).forEach((skill) => append("Core skill", skill.name, skill.description, "Active"));
+      } else {
+        [...member.activeSkills, member.switchSkill]
+          .filter(Boolean)
+          .map((key) => skillFor(entry, key))
+          .filter(Boolean)
+          .forEach((skill) => append(skill.core ? "Core skill" : "Skill", skill.name, skill.description, "Active"));
+        (entry.ultimates || []).forEach((skill) => append("Ultimate", skill.name, skill.description, "Active"));
+      }
+      const carried = carriedItemFor(member);
+      (carried?.carried_effects?.core_effects || []).forEach((description, effectIndex) => append("Carried item", carried.name, description, `Core effect ${effectIndex + 1}`));
+      (carried?.carried_effects?.advanced_effects || []).forEach((description, effectIndex) => append("Carried item", carried.name, description, `Advanced effect ${effectIndex + 1}`));
+    });
+    return effects;
+  }
+
+  function renderScenario() {
+    const section = el("section", "team-scenario");
+    const heading = el("div", "team-section-heading");
+    const effects = effectCandidates();
+    const enabledCount = effects.filter((effect) => model.scenarioToggles[effect.id]).length;
+    heading.append(el("div", "", "Team synergy scenario"), el("small", "", `${enabledCount} active`));
+    section.append(heading);
+    section.append(el(
+      "p",
+      "team-section-copy",
+      "Toggle the buffs and conditional effects that apply to the situation you want to model.",
+    ));
+    if (!effects.length) {
+      section.append(el("p", "team-empty-copy", "Choose team members and skills to reveal supported synergy effects."));
+    } else {
+      const list = el("div", "team-synergy-list");
+      effects.forEach((effect) => {
+        const label = el("label", "team-synergy-card");
+        if (model.scenarioToggles[effect.id]) label.classList.add("is-enabled");
+        const input = document.createElement("input");
+        input.type = "checkbox";
+        input.checked = Boolean(model.scenarioToggles[effect.id]);
+        input.addEventListener("change", () => {
+          model.scenarioToggles[effect.id] = input.checked;
+          persist();
+          render();
+        });
+        const copy = el("span", "team-synergy-copy");
+        const title = el("span", "team-synergy-title");
+        title.append(el("strong", "", effect.name), el("small", "", `${effect.source} · ${translate(effect.activation)}`));
+        copy.append(title, el("span", "team-synergy-description", effect.description));
+        label.append(input, copy);
+        list.append(label);
+      });
+      section.append(list);
+    }
+
+    const damage = el("div", "team-damage-preview");
+    damage.append(
+      el("p", "team-eyebrow", "Sample damage"),
+      el("strong", "", "Combat profile ready"),
+      el("p", "", "Attack, skill Might, rune rolls, carried-item effects, and enabled team buffs are preserved in this build. A damage number will be added after the combat formula and enemy mitigation model are verified."),
+    );
+    section.append(damage);
+    return section;
+  }
+
+  function renderMemberConfiguration(member, index) {
+    const entry = aniimoFor(member);
+    if (!entry) {
+      const empty = el("section", "team-builder-empty");
+      empty.append(el("strong", "", "Choose an Aniimo for this slot"), el("p", "", "Use the team controls on the left to start configuring this position."));
+      return empty;
+    }
+    const wrapper = el("div", "team-member-configuration");
+    wrapper.append(renderMemberIdentity(member, entry, index));
+    const columns = el("div", "team-builder-columns");
+    const config = el("div", "team-builder-main-column");
+    const supportOnly = model.mode === "coop" && index > 0;
+    config.append(renderSkillLoadout(member, entry, supportOnly));
+    if (!supportOnly) config.append(renderEquipment(member));
+    config.append(renderStats(member, entry));
+    columns.append(config, renderScenario());
+    wrapper.append(columns);
+    return wrapper;
+  }
+
+  function renderPanel() {
+    panel.textContent = "";
+    const header = el("header", "team-builder-header");
+    const copy = el("div", "");
+    copy.append(
+      el("h1", "", "Team Builder"),
+      el("p", "", model.mode === "coop"
+        ? "Configure one controlled Aniimo and the three Core skills supplied by your personal team."
+        : "Configure four Aniimo, their skill loadouts, progression, carried items, runes, and team effects."),
+    );
+    header.append(copy, renderModeSwitch());
+    panel.append(header, renderTeamOverview(), renderMemberConfiguration(model.members[model.activeSlot], model.activeSlot));
+  }
+
+  function renderLoading() {
+    if (!sidebar || !panel) return;
+    sidebar.textContent = "";
+    panel.textContent = "";
+    sidebar.append(el("p", "team-loading", loadError || "Loading Team Builder…"));
+    panel.append(el("p", "team-loading", loadError || "Loading Team Builder…"));
+  }
+
+  function render() {
+    if (!sidebar || !panel) return;
+    if (!aniilog || !itemlog) {
+      renderLoading();
+      return;
+    }
+    model.members.forEach(validateMember);
+    renderSidebar();
+    renderPanel();
+    window.AniipediaI18n?.translateTree(sidebar);
+    window.AniipediaI18n?.translateTree(panel);
+  }
+
+  function mount(elements) {
+    sidebar = elements?.sidebar || null;
+    panel = elements?.panel || null;
+    renderLoading();
+  }
+
+  async function show() {
+    renderLoading();
+    await ensureData();
+    render();
+  }
+
+  window.AniipediaTeamBuilder = Object.freeze({ mount, show });
+})();

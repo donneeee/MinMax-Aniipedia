@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#1a1f22">
     <title>MinMax's Aniipedia</title>
-    <link rel="stylesheet" href="./styles.css?v=20260721-floating-catalog-actions-v003">
+    <link rel="stylesheet" href="./styles.css?v=20260721-team-builder-v001">
   </head>
   <body>
     <main class="app-shell">
@@ -30,6 +30,7 @@
           <button id="checklistWorkspaceTab" class="workspace-tab" data-workspace-view="checklist" type="button" role="tab" aria-controls="checklistWorkspace" aria-selected="false">Checklist</button>
           <button id="aniilogWorkspaceTab" class="workspace-tab" data-workspace-view="aniilog" type="button" role="tab" aria-controls="catalogWorkspace" aria-selected="false">Aniilog</button>
           <button id="itemlogWorkspaceTab" class="workspace-tab" data-workspace-view="itemlog" type="button" role="tab" aria-controls="catalogWorkspace" aria-selected="false">Item-log</button>
+          <button id="teamWorkspaceTab" class="workspace-tab" data-workspace-view="team" type="button" role="tab" aria-controls="teamWorkspace" aria-selected="false">Team</button>
         </div>
 
         <div id="mapWorkspace" class="sidebar-workspace" role="tabpanel" aria-labelledby="mapWorkspaceTab">
@@ -85,6 +86,10 @@
           <div id="catalogSidebarContent" class="catalog-sidebar-content"></div>
         </section>
 
+        <section id="teamWorkspace" class="team-workspace" role="tabpanel" aria-labelledby="teamWorkspaceTab" hidden>
+          <div id="teamSidebarContent" class="team-sidebar-content"></div>
+        </section>
+
         <section class="panel detail-panel" aria-live="polite">
           <div class="panel-heading">
             <h2>Selection</h2>
@@ -123,6 +128,7 @@
           </section>
         </div>
         <section id="catalogPanel" class="catalog-panel" role="region" aria-live="polite" hidden></section>
+        <section id="teamPanel" class="team-panel" role="region" aria-live="polite" hidden></section>
       </section>
     </main>
 
@@ -147,7 +153,8 @@
       </section>
     </div>
 
-  <script defer src="./localization.js?v=20260721-localization-v024"></script>
-  <script defer src="./app.js?v=20260721-floating-catalog-actions-v003"></script>
+  <script defer src="./localization.js?v=20260721-localization-v025"></script>
+  <script defer src="./team-builder.js?v=20260721-team-builder-v001"></script>
+  <script defer src="./app.js?v=20260721-team-builder-v001"></script>
   </body>
 </html>
