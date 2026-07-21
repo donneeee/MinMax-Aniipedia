@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const ASSET_VERSION = "20260720-localization-v021";
+  const ASSET_VERSION = "20260720-localization-v022";
   const SUPPORTED_LANGUAGES = Object.freeze({
     en: { label: "English", htmlLang: "en" },
     "zh-CN": { label: "简体中文", htmlLang: "zh-CN" },
@@ -12,6 +12,26 @@
   // Website-owned interface copy. Game-owned names and descriptions come from
   // the complete UID maps generated from the client localization files.
   const UI_ROWS = [
+    ["Pack contents", "礼包内容", "パック内容", "팩 구성품"],
+    ["Contains all listed items", "包含所有列出的物品", "表示されたアイテムをすべて含みます", "표시된 모든 아이템 포함"],
+    ["Choose one listed item", "从列出的物品中选择一个", "表示されたアイテムから1つ選択", "표시된 아이템 중 1개 선택"],
+    ["Choose one bundle", "选择一个组合", "バンドルを1つ選択", "묶음 1개 선택"],
+    ["Randomly grants one result", "随机获得一个结果", "結果を1つランダムで獲得", "결과 중 1개 무작위 획득"],
+    ["Listed possible contents", "列出的可能内容", "表示された入手候補", "표시된 획득 가능 구성품"],
+    ["Known contents", "已知内容", "判明している内容", "확인된 구성품"],
+    ["Shop listings", "商店列表", "ショップ販売", "상점 판매"],
+    ["Item Shop", "道具商店", "アイテムショップ", "아이템 상점"],
+    ["Receives", "获得", "入手数", "획득"],
+    ["Configured purchase limit", "设定购买上限", "設定購入上限", "설정 구매 한도"],
+    ["Crafting & production", "制作与生产", "クラフト・生産", "제작 및 생산"],
+    ["Produces", "产出", "生産物", "생산"],
+    ["Requires", "所需材料", "必要素材", "필요 재료"],
+    ["High-speed formula", "高速配方", "高速レシピ", "고속 제조식"],
+    ["Progression uses", "养成用途", "育成用途", "성장 용도"],
+    ["Aniimo progression", "伊莫养成", "アニモ育成", "애니모 성장"],
+    ["Show Aniimo", "显示伊莫", "アニモを表示", "애니모 표시"],
+    ["Item crafting", "道具制作", "アイテムクラフト", "아이템 제작"],
+    ["Homeland production", "家园生产", "ホーム生産", "홈 생산"],
     ["Document Pickups", "文档拾取", "文書収集物", "문서 수집품"],
     ["Document Pickup", "文档", "文書", "문서"],
     ["Lore & Research", "传说与研究", "伝承・研究", "전승 및 연구"],
@@ -446,6 +466,45 @@
     if (currencyAmount) {
       const currency = translate(currencyAmount[2]);
       if (currency !== currencyAmount[2]) return `${currencyAmount[1]} ${currency}`;
+    }
+    const choice = text.match(/^Choice ([\d,]+)$/);
+    if (choice) {
+      if (activeLocale === "zh-CN") return `选项 ${choice[1]}`;
+      if (activeLocale === "ja") return `選択肢 ${choice[1]}`;
+      if (activeLocale === "ko") return `선택 ${choice[1]}`;
+    }
+    const receivesItems = text.match(/^Receives ([\d,]+) items?$/);
+    if (receivesItems) {
+      if (activeLocale === "zh-CN") return `获得 ${receivesItems[1]} 件道具`;
+      if (activeLocale === "ja") return `${receivesItems[1]} 個のアイテムを獲得`;
+      if (activeLocale === "ko") return `아이템 ${receivesItems[1]}개 획득`;
+    }
+    const purchaseLimit = text.match(/^Configured purchase limit: ([\d,]+)$/);
+    if (purchaseLimit) {
+      if (activeLocale === "zh-CN") return `购买上限：${purchaseLimit[1]}`;
+      if (activeLocale === "ja") return `購入上限：${purchaseLimit[1]}`;
+      if (activeLocale === "ko") return `구매 제한: ${purchaseLimit[1]}`;
+    }
+    const usedInRecipes = text.match(/^Used in ([\d,]+) recipes?$/);
+    if (usedInRecipes) {
+      if (activeLocale === "zh-CN") return `用于 ${usedInRecipes[1]} 个配方`;
+      if (activeLocale === "ja") return `${usedInRecipes[1]} 件のレシピで使用`;
+      if (activeLocale === "ko") return `레시피 ${usedInRecipes[1]}개에 사용`;
+    }
+    const itemUse = text.match(/^Uses ([\d,]+) of this item(?:\s·\s(.+))?$/);
+    if (itemUse) {
+      const suffix = itemUse[2]
+        ? ` · ${itemUse[2].split(" · ").map((part) => translate(part)).join(" · ")}`
+        : "";
+      if (activeLocale === "zh-CN") return `消耗此道具 ${itemUse[1]} 个${suffix}`;
+      if (activeLocale === "ja") return `このアイテムを ${itemUse[1]} 個使用${suffix}`;
+      if (activeLocale === "ko") return `이 아이템 ${itemUse[1]}개 사용${suffix}`;
+    }
+    const aniimoCount = text.match(/^([\d,]+) Aniimo$/);
+    if (aniimoCount) {
+      if (activeLocale === "zh-CN") return `${aniimoCount[1]} 个伊莫`;
+      if (activeLocale === "ja") return `${aniimoCount[1]}体のアニモ`;
+      if (activeLocale === "ko") return `${aniimoCount[1]}개 애니모`;
     }
     const unlock = text.match(/^Unlock by obtaining (.+)$/);
     if (unlock) {

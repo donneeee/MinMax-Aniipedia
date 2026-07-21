@@ -3069,6 +3069,193 @@ html[data-theme="pawney"] .catalog-record {
   line-height: 1.45;
 }
 
+.catalog-enrichment-note {
+  margin: -3px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.catalog-item-reference-grid,
+.catalog-choice-grid,
+.catalog-quality-rate-grid,
+.catalog-shop-grid,
+.catalog-recipe-grid,
+.catalog-used-in-grid,
+.catalog-progression-use-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 8px;
+}
+
+.catalog-item-reference-grid--costs {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 145px), 1fr));
+}
+
+.catalog-item-reference {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 34px;
+  border: 1px solid rgba(var(--accent-rgb), 0.32);
+  border-radius: 6px;
+  background: rgba(var(--background-rgb), 0.46);
+  padding: 7px 9px;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.catalog-item-reference-amount {
+  flex: 0 0 auto;
+  color: var(--accent-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.catalog-item-reference-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+button.catalog-item-reference {
+  width: 100%;
+}
+
+.catalog-item-reference.is-linked {
+  cursor: pointer;
+}
+
+.catalog-item-reference.is-linked:hover,
+.catalog-item-reference.is-linked:focus-visible {
+  border-color: rgba(var(--accent-rgb), 0.8);
+  background: rgba(var(--accent-rgb), 0.13);
+  color: var(--accent);
+}
+
+.catalog-choice-card,
+.catalog-shop-card,
+.catalog-recipe-card,
+.catalog-used-in-row,
+.catalog-progression-use-card {
+  display: grid;
+  align-content: start;
+  min-width: 0;
+  gap: 7px;
+  border-left: 3px solid rgba(var(--accent-rgb), 0.58);
+  border-radius: 7px;
+  background: rgba(var(--panel-rgb), 0.52);
+  padding: 10px 11px;
+}
+
+.catalog-choice-card > strong,
+.catalog-shop-card > strong,
+.catalog-recipe-card > strong,
+.catalog-used-in-row > strong,
+.catalog-progression-use-card > strong {
+  color: var(--accent-2);
+  font-size: 13px;
+}
+
+.catalog-choice-card .catalog-item-reference {
+  margin-top: 1px;
+}
+
+.catalog-shop-card p,
+.catalog-progression-use-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.catalog-shop-card small,
+.catalog-recipe-card small,
+.catalog-used-in-row small {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.catalog-quality-rate {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  border: 1px solid rgba(159, 170, 173, 0.55);
+  border-radius: 6px;
+  background: rgba(var(--background-rgb), 0.46);
+  padding: 8px 10px;
+}
+
+.catalog-quality-rate--rare { border-color: rgba(87, 173, 230, 0.78); }
+.catalog-quality-rate--epic { border-color: rgba(174, 105, 224, 0.78); }
+.catalog-quality-rate--legendary { border-color: rgba(224, 183, 77, 0.82); }
+
+.catalog-quality-rate span {
+  color: var(--text);
+  font-weight: 800;
+}
+
+.catalog-recipe-output,
+.catalog-recipe-ingredients {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.catalog-recipe-output > span,
+.catalog-recipe-ingredients > span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.catalog-recipe-ingredients .catalog-item-reference + .catalog-item-reference {
+  margin-top: 2px;
+}
+
+.catalog-used-in {
+  border: 1px solid rgba(var(--accent-rgb), 0.32);
+  border-radius: 7px;
+  background: rgba(var(--background-rgb), 0.32);
+  overflow: clip;
+}
+
+.catalog-used-in > summary,
+.catalog-progression-use-card summary {
+  cursor: pointer;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.catalog-used-in > summary {
+  padding: 10px 12px;
+}
+
+.catalog-used-in[open] > summary {
+  border-bottom: 1px solid rgba(var(--accent-rgb), 0.25);
+}
+
+.catalog-used-in-grid {
+  padding: 10px;
+}
+
+.catalog-progression-use-card > span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.catalog-progression-use-card details p {
+  margin-top: 6px;
+}
+
 .catalog-carried-effect-heading {
   display: flex;
   align-items: baseline;

@@ -1,8 +1,8 @@
 const DATA_URL = "./data/map_site_data.json?v=20260720-fixed-collectible-links-v001";
 const CHECKLIST_URL = "./data/checklist_data.json?v=20260719-lumen-embers-v001";
-const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260720-profile-avatar-icons-v001";
+const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260721-item-enrichment-v001";
 const ANIILOG_DATA_URL = "./data/aniilog_data.json?v=20260719-localization-v003";
-const APP_VERSION = "v0.4.11";
+const APP_VERSION = "v0.4.12";
 const GITHUB_COMMITS_URL = "https://api.github.com/repos/donneeee/MinMax-Aniipedia/commits?sha=main&per_page=30";
 const CHANGELOG_INTERNAL_MARKER_RE = /\[(?:skip changelog|internal)\]/i;
 const CHANGELOG_PUBLIC_ENTRY_LIMIT = 12;
@@ -4357,6 +4357,236 @@ function renderItemLogObtainMethods(methods) {
   return section;
 }
 
+function itemlogEntryForItemId(itemId) {
+  const normalized = String(itemId || "");
+  if (!normalized) return null;
+  return (state.itemlogData?.entries || []).find((entry) => String(entry?.item_id || "") === normalized) || null;
+}
+
+function openItemlogReference(itemId) {
+  const entry = itemlogEntryForItemId(itemId);
+  if (!entry) return;
+  state.catalogCategory.itemlog = entry.catalog_category || "all";
+  state.catalogSearch.itemlog = "";
+  state.itemlogFilters.source = "all";
+  state.itemlogFilters.park = "all";
+  state.itemlogFilters.tier = "all";
+  state.catalogSelection.itemlog = entry.id;
+  state.catalogIndexScroll.itemlog = 0;
+  renderCatalogPreview();
+}
+
+function renderItemlogReference(item, className = "catalog-item-reference") {
+  const amount = Math.max(1, Number(item?.amount) || 1);
+  const linkedEntry = itemlogEntryForItemId(item?.item_id);
+  const amountLabel = document.createElement("span");
+  amountLabel.className = "catalog-item-reference-amount";
+  amountLabel.textContent = `${amount.toLocaleString()}x`;
+  const nameLabel = document.createElement("span");
+  nameLabel.className = "catalog-item-reference-name";
+  nameLabel.textContent = item?.name || "Unknown item";
+  if (!linkedEntry) {
+    const text = document.createElement("span");
+    text.className = className;
+    text.append(amountLabel, nameLabel);
+    return text;
+  }
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = `${className} is-linked`;
+  button.append(amountLabel, nameLabel);
+  button.title = `Open ${linkedEntry.name} in the Item-log`;
+  button.addEventListener("click", () => openItemlogReference(item.item_id));
+  return button;
+}
+
+function renderItemLogPackContents(packContents) {
+  if (!packContents || typeof packContents !== "object") return null;
+  const entries = Array.isArray(packContents.entries) ? packContents.entries.filter(Boolean) : [];
+  const choices = Array.isArray(packContents.choices) ? packContents.choices.filter(Array.isArray) : [];
+  const qualityRates = Array.isArray(packContents.quality_rates) ? packContents.quality_rates.filter(Boolean) : [];
+  if (!entries.length && !choices.length && !qualityRates.length) return null;
+
+  const modeLabels = {
+    fixed_set: "Contains all listed items",
+    choice_one: "Choose one listed item",
+    choice_bundle: "Choose one bundle",
+    random_one: "Randomly grants one result",
+    listed_outcomes: "Listed possible contents",
+  };
+  const section = createCatalogSection("Pack contents");
+  const mode = document.createElement("p");
+  mode.className = "catalog-enrichment-note";
+  mode.textContent = modeLabels[packContents.mode] || "Known contents";
+  section.append(mode);
+
+  if (entries.length) {
+    const list = document.createElement("div");
+    list.className = "catalog-item-reference-grid";
+    entries.forEach((item) => list.append(renderItemlogReference(item)));
+    section.append(list);
+  }
+
+  if (choices.length) {
+    const choiceGrid = document.createElement("div");
+    choiceGrid.className = "catalog-choice-grid";
+    choices.forEach((choice, index) => {
+      const card = document.createElement("article");
+      card.className = "catalog-choice-card";
+      const heading = document.createElement("strong");
+      heading.textContent = `Choice ${index + 1}`;
+      card.append(heading);
+      choice.filter(Boolean).forEach((item) => card.append(renderItemlogReference(item)));
+      choiceGrid.append(card);
+    });
+    section.append(choiceGrid);
+  }
+
+  if (qualityRates.length) {
+    const rates = document.createElement("div");
+    rates.className = "catalog-quality-rate-grid";
+    qualityRates.forEach((rate) => {
+      const row = document.createElement("div");
+      row.className = `catalog-quality-rate catalog-quality-rate--${qualityClassName(rate?.quality)}`;
+      const label = document.createElement("strong");
+      label.textContent = rate?.quality || "Unknown quality";
+      const chance = document.createElement("span");
+      chance.textContent = `${formatNumber(Number(rate?.chance_percent) || 0)}%`;
+      row.append(label, chance);
+      rates.append(row);
+    });
+    section.append(rates);
+  }
+  return section;
+}
+
+function renderItemLogShopListings(shopListings) {
+  const listings = Array.isArray(shopListings) ? shopListings.filter(Boolean) : [];
+  if (!listings.length) return null;
+  const section = createCatalogSection("Shop listings");
+  const list = document.createElement("div");
+  list.className = "catalog-shop-grid";
+  listings.forEach((listing) => {
+    const card = document.createElement("article");
+    card.className = "catalog-shop-card";
+    const heading = document.createElement("strong");
+    heading.textContent = listing?.shop || "Item Shop";
+    const output = document.createElement("p");
+    const quantity = Math.max(1, Number(listing?.item_quantity) || 1);
+    output.textContent = `Receives ${quantity.toLocaleString()} item${quantity === 1 ? "" : "s"}`;
+    const costs = document.createElement("div");
+    costs.className = "catalog-item-reference-grid catalog-item-reference-grid--costs";
+    (listing?.costs || []).filter(Boolean).forEach((cost) => costs.append(renderItemlogReference(cost)));
+    card.append(heading, output, costs);
+    if (Number(listing?.purchase_limit) > 0) {
+      const limit = document.createElement("small");
+      limit.textContent = `Configured purchase limit: ${formatNumber(Number(listing.purchase_limit))}`;
+      card.append(limit);
+    }
+    list.append(card);
+  });
+  section.append(list);
+  return section;
+}
+
+function renderRecipeCard(recipe) {
+  const card = document.createElement("article");
+  card.className = "catalog-recipe-card";
+  const heading = document.createElement("strong");
+  heading.textContent = recipe?.kind || "Recipe";
+  const output = document.createElement("div");
+  output.className = "catalog-recipe-output";
+  const outputLabel = document.createElement("span");
+  outputLabel.textContent = "Produces";
+  output.append(outputLabel, renderItemlogReference(recipe?.output || {}));
+  const ingredients = document.createElement("div");
+  ingredients.className = "catalog-recipe-ingredients";
+  const ingredientLabel = document.createElement("span");
+  ingredientLabel.textContent = "Requires";
+  ingredients.append(ingredientLabel);
+  (recipe?.ingredients || []).filter(Boolean).forEach((item) => ingredients.append(renderItemlogReference(item)));
+  card.append(heading, output, ingredients);
+  const metadata = [];
+  if (Number(recipe?.seconds) > 0) metadata.push(formatRespawnDuration(recipe.seconds));
+  if (recipe?.high_speed) metadata.push("High-speed formula");
+  if (metadata.length) {
+    const note = document.createElement("small");
+    note.textContent = metadata.join(" · ");
+    card.append(note);
+  }
+  return card;
+}
+
+function renderItemLogCrafting(craftedFrom, usedIn) {
+  const recipes = Array.isArray(craftedFrom) ? craftedFrom.filter(Boolean) : [];
+  const uses = Array.isArray(usedIn) ? usedIn.filter(Boolean) : [];
+  if (!recipes.length && !uses.length) return null;
+  const section = createCatalogSection("Crafting & production");
+  if (recipes.length) {
+    const grid = document.createElement("div");
+    grid.className = "catalog-recipe-grid";
+    recipes.forEach((recipe) => grid.append(renderRecipeCard(recipe)));
+    section.append(grid);
+  }
+  if (uses.length) {
+    const details = document.createElement("details");
+    details.className = "catalog-used-in";
+    const summary = document.createElement("summary");
+    summary.textContent = `Used in ${formatNumber(uses.length)} recipe${uses.length === 1 ? "" : "s"}`;
+    const list = document.createElement("div");
+    list.className = "catalog-used-in-grid";
+    uses.forEach((use) => {
+      const row = document.createElement("article");
+      row.className = "catalog-used-in-row";
+      const kind = document.createElement("strong");
+      kind.textContent = use?.kind || "Recipe";
+      row.append(kind, renderItemlogReference({
+        item_id: use?.item_id,
+        name: use?.name,
+        amount: use?.output_amount || 1,
+      }));
+      const cost = document.createElement("small");
+      cost.textContent = `Uses ${formatNumber(Number(use?.amount) || 1)} of this item${Number(use?.seconds) > 0 ? ` · ${formatRespawnDuration(use.seconds)}` : ""}${use?.high_speed ? " · High-speed formula" : ""}`;
+      row.append(cost);
+      list.append(row);
+    });
+    details.append(summary, list);
+    section.append(details);
+  }
+  return section;
+}
+
+function renderItemLogProgressionUses(progressionUses) {
+  const uses = Array.isArray(progressionUses) ? progressionUses.filter(Boolean) : [];
+  if (!uses.length) return null;
+  const section = createCatalogSection("Progression uses");
+  const grid = document.createElement("div");
+  grid.className = "catalog-progression-use-grid";
+  uses.forEach((use) => {
+    const card = document.createElement("article");
+    card.className = "catalog-progression-use-card";
+    const heading = document.createElement("strong");
+    heading.textContent = use?.role || "Aniimo progression";
+    const names = Array.isArray(use?.aniimo_names) ? use.aniimo_names.filter(Boolean) : [];
+    const count = Number(use?.aniimo_count) || names.length;
+    const summary = document.createElement("span");
+    summary.textContent = `${formatNumber(count)} Aniimo`;
+    card.append(heading, summary);
+    if (names.length) {
+      const details = document.createElement("details");
+      const detailsSummary = document.createElement("summary");
+      detailsSummary.textContent = "Show Aniimo";
+      const list = document.createElement("p");
+      list.textContent = names.join(", ");
+      details.append(detailsSummary, list);
+      card.append(details);
+    }
+    grid.append(card);
+  });
+  section.append(grid);
+  return section;
+}
+
 function visibleRvExpeditionSources(entry) {
   const sources = itemlogExpeditionSources(entry);
   if (state.itemlogFilters.source !== "rv-expedition") return sources;
@@ -4807,6 +5037,14 @@ function renderItemLogCatalogRecord(entry) {
 
   const gizmoProgression = renderHoloBattleGizmoProgression(entry.holo_battle_gizmo);
   if (gizmoProgression) record.append(gizmoProgression);
+  const packContents = renderItemLogPackContents(entry.pack_contents);
+  if (packContents) record.append(packContents);
+  const shopListings = renderItemLogShopListings(entry.shop_listings);
+  if (shopListings) record.append(shopListings);
+  const crafting = renderItemLogCrafting(entry.crafted_from, entry.used_in);
+  if (crafting) record.append(crafting);
+  const progressionUses = renderItemLogProgressionUses(entry.progression_uses);
+  if (progressionUses) record.append(progressionUses);
   const requirements = renderItemLogRequirements(entry.requirements);
   if (requirements) record.append(requirements);
   const expeditionSources = renderRvExpeditionSources(entry);
