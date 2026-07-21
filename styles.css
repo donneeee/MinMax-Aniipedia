@@ -6042,6 +6042,10 @@ button.catalog-item-reference {
   .catalog-mobile-sticky-identity .catalog-identity-actions {
     display: none;
   }
+
+  .catalog-mobile-sticky-aniilog .catalog-tags {
+    display: none;
+  }
 }
 
 @media (max-width: 520px) {

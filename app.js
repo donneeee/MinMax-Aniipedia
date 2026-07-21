@@ -2,7 +2,7 @@ const DATA_URL = "./data/map_site_data.json?v=20260720-fixed-collectible-links-v
 const CHECKLIST_URL = "./data/checklist_data.json?v=20260719-lumen-embers-v001";
 const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260721-item-enrichment-v001";
 const ANIILOG_DATA_URL = "./data/aniilog_data.json?v=20260719-localization-v003";
-const APP_VERSION = "v0.4.13";
+const APP_VERSION = "v0.4.14";
 const GITHUB_COMMITS_URL = "https://api.github.com/repos/donneeee/MinMax-Aniipedia/commits?sha=main&per_page=30";
 const CHANGELOG_INTERNAL_MARKER_RE = /\[(?:skip changelog|internal)\]/i;
 const CHANGELOG_PUBLIC_ENTRY_LIMIT = 12;
@@ -4197,9 +4197,14 @@ function renderAniilogCatalogRecord(entry) {
 
   const identity = document.createElement("header");
   identity.className = "catalog-identity";
+  identity.dataset.catalogEntryId = entry.id;
   const icon = makeIcon("catalog-hero-icon", entry.icon);
   icon.alt = `${entry.name} ${entry.form_label} form icon`;
   const copy = document.createElement("div");
+  const stickyIndicator = document.createElement("span");
+  stickyIndicator.className = "catalog-sticky-indicator";
+  stickyIndicator.textContent = "Selected Aniimo";
+  stickyIndicator.setAttribute("aria-hidden", "true");
   const number = document.createElement("p");
   number.className = "catalog-eyebrow";
   number.textContent = `${entry.aniilog_number || "Special"} - ${entry.form_label || "Basic"}`;
@@ -4215,7 +4220,7 @@ function renderAniilogCatalogRecord(entry) {
     const elementMeta = catalogElementMeta(element);
     tags.append(createCatalogTag(`Type: ${catalogElementLabel(element)} ${element.level}`, `catalog-element-tag element-${elementClassName(element)}`, elementMeta));
   });
-  copy.append(number, name, tags);
+  copy.append(stickyIndicator, number, name, tags);
   identity.append(icon, copy);
   const actions = document.createElement("div");
   actions.className = "catalog-identity-actions";
@@ -5388,16 +5393,18 @@ function removeMobileCatalogStickyIdentity() {
 }
 
 function syncMobileCatalogStickyIdentity() {
-  const identity = els.catalogPanel.querySelector(".catalog-itemlog-record > .catalog-identity");
+  const view = state.sidebarView;
+  const recordSelector = view === "aniilog" ? ".catalog-aniilog-record" : ".catalog-itemlog-record";
+  const identity = els.catalogPanel.querySelector(`${recordSelector} > .catalog-identity`);
   const stickyEnabled = MOBILE_LAYOUT_QUERY.matches
-    && state.sidebarView === "itemlog"
+    && (view === "aniilog" || view === "itemlog")
     && !els.catalogPanel.hidden;
   if (!identity || !stickyEnabled) {
     removeMobileCatalogStickyIdentity();
     return;
   }
   const identityRect = identity.getBoundingClientRect();
-  const recordRect = identity.closest(".catalog-itemlog-record")?.getBoundingClientRect();
+  const recordRect = identity.closest(recordSelector)?.getBoundingClientRect();
   const isStuck = identityRect.top <= 0
     && Boolean(recordRect && recordRect.bottom > identityRect.height + 1);
   if (!isStuck) {
@@ -5411,7 +5418,7 @@ function syncMobileCatalogStickyIdentity() {
   }
   if (!stickyIdentity) {
     stickyIdentity = identity.cloneNode(true);
-    stickyIdentity.classList.add("catalog-mobile-sticky-identity", "is-stuck");
+    stickyIdentity.classList.add("catalog-mobile-sticky-identity", `catalog-mobile-sticky-${view}`, "is-stuck");
     stickyIdentity.setAttribute("aria-hidden", "true");
     stickyIdentity.setAttribute("inert", "");
     document.body.append(stickyIdentity);
