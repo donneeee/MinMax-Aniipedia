@@ -12,6 +12,9 @@
   // Website-owned interface copy. Game-owned names and descriptions come from
   // the complete UID maps generated from the client localization files.
   const UI_ROWS = [
+    ["Floating (draggable)", "浮动（可拖动）", "フローティング（ドラッグ可能）", "플로팅 (드래그 가능)"],
+    ["Share current pins", "分享当前图钉", "現在のピンを共有", "현재 핀 공유"],
+    ["Floating position and the default panel state are saved in this browser. Mobile always uses a compact touch bar that expands into a bottom sheet.", "浮动位置和面板默认状态会保存在此浏览器中。移动端始终使用可展开为底部面板的紧凑触控栏。", "フローティング位置とパネルの初期状態はこのブラウザーに保存されます。モバイルでは常に、ボトムシートへ展開するコンパクトなタッチバーを使用します。", "플로팅 위치와 패널 기본 상태는 이 브라우저에 저장됩니다. 모바일에서는 항상 하단 시트로 펼쳐지는 간결한 터치 바를 사용합니다."],
     ["Team", "队伍", "チーム", "팀"],
     ["Team Builder", "队伍构建器", "チームビルダー", "팀 빌더"],
     ["Standard", "标准", "通常", "일반"],
@@ -145,9 +148,14 @@
     ["Map selection details", "地图选择详情", "マップ選択の詳細", "지도 선택 세부 정보"],
     ["Keep selected marker details out of the filter list on desktop. Placement updates immediately.", "在桌面端将所选标记的详情移出筛选列表。位置会立即更新。", "デスクトップでは選択したマーカーの詳細をフィルター一覧の外に表示します。位置はすぐに更新されます。", "데스크톱에서는 선택한 마커의 세부 정보를 필터 목록 밖에 표시합니다. 위치는 즉시 변경됩니다."],
     ["Desktop position", "桌面端位置", "デスクトップでの位置", "데스크톱 위치"],
+    ["Top left", "左上角", "左上", "왼쪽 위"],
     ["Top right (recommended)", "右上角（推荐）", "右上（推奨）", "오른쪽 위(권장)"],
+    ["Bottom left", "左下角", "左下", "왼쪽 아래"],
     ["Bottom right", "右下角", "右下", "오른쪽 아래"],
     ["Sidebar", "侧边栏", "サイドバー", "사이드바"],
+    ["Desktop default state", "桌面端默认状态", "デスクトップの初期状態", "데스크톱 기본 상태"],
+    ["Expanded", "展开", "展開", "펼침"],
+    ["Minimized", "最小化", "最小化", "최소화"],
     ["Mobile always uses a compact touch bar that expands into a bottom sheet.", "移动端始终使用紧凑的触控栏，展开后显示为底部面板。", "モバイルでは常に、展開するとボトムシートになるコンパクトなタッチバーを使用します。", "모바일에서는 항상 펼치면 하단 시트가 되는 간결한 터치 바를 사용합니다."],
     ["Filter shortcuts", "筛选快捷操作", "フィルターショートカット", "필터 단축키"],
     ["Map shortcuts", "地图快捷操作", "マップショートカット", "지도 단축키"],

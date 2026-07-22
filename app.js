@@ -176,9 +176,19 @@ const DEFAULT_PREFERENCES = Object.freeze({
   language: "en",
   theme: "default",
   mapSelectionPlacement: "top-right",
+  mapSelectionDefaultState: "expanded",
+  mapSelectionFloatingPosition: null,
   customTheme: DEFAULT_CUSTOM_THEME,
 });
-const DESKTOP_SELECTION_PLACEMENTS = new Set(["top-right", "bottom-right", "sidebar"]);
+const DESKTOP_SELECTION_PLACEMENTS = new Set([
+  "top-left",
+  "top-right",
+  "bottom-left",
+  "bottom-right",
+  "floating",
+  "sidebar",
+]);
+const SELECTION_DEFAULT_STATES = new Set(["expanded", "minimized"]);
 const COLORS = [
   "#7fc6b2",
   "#e8bf63",
@@ -239,6 +249,7 @@ const state = {
   locatedSpawnIndex: null,
   mobileSelectionMinimized: true,
   desktopSelectionMinimized: false,
+  desktopSelectionDrag: null,
   sidebarCollapsed: false,
   sidebarView: "map",
   settingsOpen: false,
@@ -1111,6 +1122,22 @@ function normalizeDesktopSelectionPlacement(value) {
   return DESKTOP_SELECTION_PLACEMENTS.has(placement) ? placement : "top-right";
 }
 
+function normalizeSelectionDefaultState(value) {
+  const selectionState = String(value || "").trim().toLowerCase();
+  return SELECTION_DEFAULT_STATES.has(selectionState) ? selectionState : "expanded";
+}
+
+function normalizeSelectionFloatingPosition(value) {
+  if (!value || typeof value !== "object") return null;
+  const x = Number(value.x);
+  const y = Number(value.y);
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+  return {
+    x: Math.min(1, Math.max(0, x)),
+    y: Math.min(1, Math.max(0, y)),
+  };
+}
+
 function hexColorRgb(value) {
   const normalized = normalizeHexColor(value, "#000000");
   return [1, 3, 5].map((offset) => Number.parseInt(normalized.slice(offset, offset + 2), 16));
@@ -1182,6 +1209,8 @@ function loadLocalTracking() {
       language: window.AniipediaI18n.normalizeLocale(preferences?.language),
       theme: normalizeThemeId(preferences?.theme),
       mapSelectionPlacement: normalizeDesktopSelectionPlacement(preferences?.mapSelectionPlacement),
+      mapSelectionDefaultState: normalizeSelectionDefaultState(preferences?.mapSelectionDefaultState),
+      mapSelectionFloatingPosition: normalizeSelectionFloatingPosition(preferences?.mapSelectionFloatingPosition),
       customTheme: normalizeThemeColors(preferences?.customTheme),
     };
   } catch (error) {
@@ -1796,7 +1825,7 @@ function renderSettings() {
   const selectionPlacementTitle = document.createElement("strong");
   selectionPlacementTitle.textContent = "Map selection details";
   const selectionPlacementDetail = document.createElement("small");
-  selectionPlacementDetail.textContent = "Choose where selected marker details appear on desktop.";
+  selectionPlacementDetail.textContent = "Keep selected marker details out of the filter list on desktop. Placement updates immediately.";
   selectionPlacementCopy.append(selectionPlacementTitle, selectionPlacementDetail);
   const selectionPlacementLabel = document.createElement("label");
   selectionPlacementLabel.className = "settings-selection-placement-field";
@@ -1804,8 +1833,11 @@ function renderSettings() {
   selectionPlacementLabelText.textContent = "Desktop position";
   const selectionPlacementSelect = document.createElement("select");
   [
+    { value: "top-left", label: "Top left" },
     { value: "top-right", label: "Top right (recommended)" },
+    { value: "bottom-left", label: "Bottom left" },
     { value: "bottom-right", label: "Bottom right" },
+    { value: "floating", label: "Floating (draggable)" },
     { value: "sidebar", label: "Sidebar" },
   ].forEach(({ value, label }) => {
     const option = document.createElement("option");
@@ -1820,10 +1852,36 @@ function renderSettings() {
     syncDesktopSelectionPlacement();
   });
   selectionPlacementLabel.append(selectionPlacementLabelText, selectionPlacementSelect);
+  const selectionDefaultLabel = document.createElement("label");
+  selectionDefaultLabel.className = "settings-selection-placement-field";
+  const selectionDefaultLabelText = document.createElement("span");
+  selectionDefaultLabelText.textContent = "Desktop default state";
+  const selectionDefaultSelect = document.createElement("select");
+  [
+    { value: "expanded", label: "Expanded" },
+    { value: "minimized", label: "Minimized" },
+  ].forEach(({ value, label }) => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = label;
+    selectionDefaultSelect.append(option);
+  });
+  selectionDefaultSelect.value = normalizeSelectionDefaultState(state.preferences.mapSelectionDefaultState);
+  selectionDefaultSelect.addEventListener("change", () => {
+    state.preferences.mapSelectionDefaultState = normalizeSelectionDefaultState(selectionDefaultSelect.value);
+    persistLocalTracking();
+    setDesktopSelectionMinimized(state.preferences.mapSelectionDefaultState === "minimized");
+  });
+  selectionDefaultLabel.append(selectionDefaultLabelText, selectionDefaultSelect);
   const selectionPlacementNote = document.createElement("small");
   selectionPlacementNote.className = "settings-language-note";
-  selectionPlacementNote.textContent = "Phones and touch-oriented layouts always use the compact bottom sheet.";
-  selectionPlacementCard.append(selectionPlacementCopy, selectionPlacementLabel, selectionPlacementNote);
+  selectionPlacementNote.textContent = "Floating position and the default panel state are saved in this browser. Mobile always uses a compact touch bar that expands into a bottom sheet.";
+  selectionPlacementCard.append(
+    selectionPlacementCopy,
+    selectionPlacementLabel,
+    selectionDefaultLabel,
+    selectionPlacementNote,
+  );
   settingsPanel.append(selectionPlacementCard);
 
   const account = document.createElement("div");
@@ -6356,19 +6414,119 @@ function updateDesktopSelectionPanel() {
   const label = minimized ? "Expand selection" : "Minimize selection";
   els.desktopSelectionToggle.setAttribute("aria-label", label);
   els.desktopSelectionToggle.title = label;
+  window.requestAnimationFrame(applyDesktopSelectionFloatingPosition);
+}
+
+function clearDesktopSelectionFloatingStyles() {
+  ["left", "top", "right", "bottom"].forEach((property) => {
+    els.desktopSelectionPanel.style.removeProperty(property);
+  });
+  els.desktopSelectionPanel.classList.remove("is-dragging");
+  state.desktopSelectionDrag = null;
+}
+
+function desktopSelectionFloatingMetrics() {
+  const margin = 16;
+  const surfaceWidth = els.mapSurface.clientWidth;
+  const surfaceHeight = els.mapSurface.clientHeight;
+  const panelWidth = els.desktopSelectionPanel.offsetWidth;
+  const panelHeight = els.desktopSelectionPanel.offsetHeight;
+  return {
+    margin,
+    travelX: Math.max(0, surfaceWidth - panelWidth - margin * 2),
+    travelY: Math.max(0, surfaceHeight - panelHeight - margin * 2),
+  };
+}
+
+function positionDesktopSelectionFloatingPanel(left, top) {
+  const metrics = desktopSelectionFloatingMetrics();
+  const clampedLeft = Math.min(metrics.margin + metrics.travelX, Math.max(metrics.margin, left));
+  const clampedTop = Math.min(metrics.margin + metrics.travelY, Math.max(metrics.margin, top));
+  els.desktopSelectionPanel.style.left = `${Math.round(clampedLeft)}px`;
+  els.desktopSelectionPanel.style.top = `${Math.round(clampedTop)}px`;
+  els.desktopSelectionPanel.style.removeProperty("right");
+  els.desktopSelectionPanel.style.removeProperty("bottom");
+  return {
+    x: metrics.travelX ? (clampedLeft - metrics.margin) / metrics.travelX : 0,
+    y: metrics.travelY ? (clampedTop - metrics.margin) / metrics.travelY : 0,
+  };
+}
+
+function applyDesktopSelectionFloatingPosition() {
+  if (normalizeDesktopSelectionPlacement(state.preferences.mapSelectionPlacement) !== "floating") return;
+  if (MOBILE_LAYOUT_QUERY.matches || els.desktopSelectionPanel.hidden || state.desktopSelectionDrag) return;
+  const metrics = desktopSelectionFloatingMetrics();
+  const savedPosition = normalizeSelectionFloatingPosition(state.preferences.mapSelectionFloatingPosition);
+  if (savedPosition) {
+    positionDesktopSelectionFloatingPanel(
+      metrics.margin + metrics.travelX * savedPosition.x,
+      metrics.margin + metrics.travelY * savedPosition.y,
+    );
+    return;
+  }
+  positionDesktopSelectionFloatingPanel(
+    metrics.margin + metrics.travelX,
+    Math.min(62, metrics.margin + metrics.travelY),
+  );
+}
+
+function startDesktopSelectionDrag(event) {
+  if (normalizeDesktopSelectionPlacement(state.preferences.mapSelectionPlacement) !== "floating") return;
+  if (event.button !== 0 || event.target.closest("button, a, input, select, textarea")) return;
+  const panelRect = els.desktopSelectionPanel.getBoundingClientRect();
+  const surfaceRect = els.mapSurface.getBoundingClientRect();
+  state.desktopSelectionDrag = {
+    pointerId: event.pointerId,
+    offsetX: event.clientX - panelRect.left,
+    offsetY: event.clientY - panelRect.top,
+    surfaceLeft: surfaceRect.left,
+    surfaceTop: surfaceRect.top,
+    position: normalizeSelectionFloatingPosition(state.preferences.mapSelectionFloatingPosition),
+  };
+  els.desktopSelectionPanel.classList.add("is-dragging");
+  event.currentTarget.setPointerCapture(event.pointerId);
+  event.preventDefault();
+}
+
+function moveDesktopSelectionDrag(event) {
+  const drag = state.desktopSelectionDrag;
+  if (!drag || drag.pointerId !== event.pointerId) return;
+  drag.position = positionDesktopSelectionFloatingPanel(
+    event.clientX - drag.surfaceLeft - drag.offsetX,
+    event.clientY - drag.surfaceTop - drag.offsetY,
+  );
+  event.preventDefault();
+}
+
+function finishDesktopSelectionDrag(event) {
+  const drag = state.desktopSelectionDrag;
+  if (!drag || drag.pointerId !== event.pointerId) return;
+  state.desktopSelectionDrag = null;
+  els.desktopSelectionPanel.classList.remove("is-dragging");
+  if (drag.position) {
+    state.preferences.mapSelectionFloatingPosition = normalizeSelectionFloatingPosition(drag.position);
+    persistLocalTracking();
+  }
+  if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+    event.currentTarget.releasePointerCapture(event.pointerId);
+  }
 }
 
 function syncDesktopSelectionPlacement() {
   const placement = normalizeDesktopSelectionPlacement(state.preferences.mapSelectionPlacement);
   const inSidebar = placement === "sidebar";
+  const floating = placement === "floating";
   state.preferences.mapSelectionPlacement = placement;
   const target = inSidebar ? els.sidebar : els.mapSurface;
   if (els.desktopSelectionPanel.parentElement !== target) target.append(els.desktopSelectionPanel);
   els.desktopSelectionPanel.dataset.placement = placement;
   els.desktopSelectionPanel.classList.toggle("is-map-overlay", !inSidebar);
   els.desktopSelectionPanel.classList.toggle("is-sidebar-placement", inSidebar);
+  els.desktopSelectionPanel.classList.toggle("is-floating-placement", floating);
+  if (!floating) clearDesktopSelectionFloatingStyles();
   setDesktopSelectionVisible(state.selectedSpawnIndex !== null);
   updateDesktopSelectionPanel();
+  if (floating) window.requestAnimationFrame(applyDesktopSelectionFloatingPosition);
 }
 
 function setMobileSelectionMinimized(minimized) {
@@ -7206,7 +7364,7 @@ function setSharePinsFeedback(message, resetDelay = 2200, tone = "info") {
   els.sharePinsStatus.textContent = message;
   setSharePinsNotice(message, tone);
   state.sharePinsResetTimer = window.setTimeout(() => {
-    els.sharePinsButton.textContent = "Copy pin link";
+    els.sharePinsButton.textContent = "Share current pins";
     els.sharePinsStatus.textContent = "";
     setSharePinsNotice();
     updateSharePinsButton();
@@ -8319,6 +8477,7 @@ function selectSpawn(index) {
   if (!spawn) return;
   const item = state.data.itemsById.get(spawn.item_id);
   if (!item) return;
+  const selectionChanged = state.selectedSpawnIndex !== index;
   if (state.selectedPin) {
     state.selectedPin.classList.remove("selected");
   }
@@ -8330,6 +8489,11 @@ function selectSpawn(index) {
   renderSelectionDetail(els.selectionDetail, spawn, item);
   renderSelectionDetail(els.mobileSelectionDetail, spawn, item);
   updateSelectionCatalogShortcuts(spawn, item);
+  if (selectionChanged) {
+    state.desktopSelectionMinimized = normalizeSelectionDefaultState(
+      state.preferences.mapSelectionDefaultState,
+    ) === "minimized";
+  }
   setDesktopSelectionVisible(true);
   updateDesktopSelectionPanel();
   setMobileSelectionMinimized(true);
@@ -8354,6 +8518,7 @@ function renderSelectionDetail(detail, spawn, item) {
   title.className = "selection-title";
   const icon = makeIcon("", spawn.icon || item.icon);
   const titleText = document.createElement("div");
+  titleText.className = "selection-title-copy";
   const strong = document.createElement("strong");
   strong.className = "selection-name copyable-detail";
   strong.textContent = spawn.display_name;
@@ -8389,7 +8554,38 @@ function renderSelectionDetail(detail, spawn, item) {
     small.append(underground);
   }
   titleText.append(strong, small);
-  title.append(icon, titleText);
+
+  const minimizedCoordinates = document.createElement("div");
+  minimizedCoordinates.className = "selection-minimized-coordinates";
+  const compactCoordinates = [
+    ["X", formatCoordinate(spawn.x), true],
+    ["Y", formatCoordinate(spawn.y), true],
+    ["Height", formatNumber(spawn.height_y, 2), false],
+  ];
+  compactCoordinates.forEach(([label, value, copyable]) => {
+    const coordinate = document.createElement(copyable ? "button" : "div");
+    coordinate.className = "selection-minimized-coordinate";
+    if (copyable) {
+      coordinate.type = "button";
+      coordinate.classList.add("copyable-detail");
+      coordinate.setAttribute("aria-label", `Copy ${label} coordinate ${value}`);
+      coordinate.title = `Copy ${label}`;
+    } else {
+      coordinate.classList.add("is-static");
+    }
+    const coordinateLabel = document.createElement("span");
+    coordinateLabel.className = "selection-minimized-coordinate-label";
+    coordinateLabel.textContent = label;
+    const coordinateValue = document.createElement("strong");
+    coordinateValue.className = "selection-minimized-coordinate-value";
+    coordinateValue.textContent = value;
+    if (copyable) {
+      coordinate.addEventListener("click", () => copyDetailValue(coordinateValue, value));
+    }
+    coordinate.append(coordinateLabel, coordinateValue);
+    minimizedCoordinates.append(coordinate);
+  });
+  title.append(icon, titleText, minimizedCoordinates);
 
   const grid = document.createElement("div");
   grid.className = "detail-grid";
@@ -8724,6 +8920,12 @@ function bindEvents() {
   els.desktopSelectionToggle.addEventListener("click", () => {
     setDesktopSelectionMinimized(!state.desktopSelectionMinimized);
   });
+  const desktopSelectionHeading = els.desktopSelectionPanel.querySelector(".panel-heading");
+  desktopSelectionHeading.addEventListener("pointerdown", startDesktopSelectionDrag);
+  desktopSelectionHeading.addEventListener("pointermove", moveDesktopSelectionDrag);
+  desktopSelectionHeading.addEventListener("pointerup", finishDesktopSelectionDrag);
+  desktopSelectionHeading.addEventListener("pointercancel", finishDesktopSelectionDrag);
+  desktopSelectionHeading.addEventListener("lostpointercapture", finishDesktopSelectionDrag);
   els.selectionCatalogShortcut.addEventListener("click", openSelectedMarkerCatalogEntry);
   els.selectionCloseButton.addEventListener("click", dismissSelection);
   els.mobileSelectionCatalogShortcut.addEventListener("click", openSelectedMarkerCatalogEntry);
@@ -8924,6 +9126,7 @@ function bindEvents() {
   }
   window.addEventListener("resize", scheduleMapViewportFit, { passive: true });
   window.addEventListener("resize", scheduleMobileCatalogStickyIdentity, { passive: true });
+  window.addEventListener("resize", applyDesktopSelectionFloatingPosition, { passive: true });
   const refreshPinGeometry = () => {
     if (state.data) applyTransform();
   };

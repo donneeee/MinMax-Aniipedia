@@ -3016,7 +3016,6 @@ html[data-theme="pawney"] .sidebar {
 .desktop-selection-panel.is-map-overlay,
 #desktopSelectionPanel.is-map-overlay {
   position: absolute;
-  right: 16px;
   z-index: 6;
   width: clamp(310px, 29vw, 430px);
   max-width: calc(100% - 32px);
@@ -3028,17 +3027,53 @@ html[data-theme="pawney"] .sidebar {
   backdrop-filter: blur(12px);
 }
 
+#desktopSelectionPanel.is-map-overlay[data-placement="top-left"],
 #desktopSelectionPanel.is-map-overlay[data-placement="top-right"] {
   top: 62px;
 }
 
+#desktopSelectionPanel.is-map-overlay[data-placement="bottom-left"],
 #desktopSelectionPanel.is-map-overlay[data-placement="bottom-right"] {
   bottom: 16px;
+}
+
+#desktopSelectionPanel.is-map-overlay[data-placement="top-left"],
+#desktopSelectionPanel.is-map-overlay[data-placement="bottom-left"] {
+  left: 16px;
+}
+
+#desktopSelectionPanel.is-map-overlay[data-placement="top-right"],
+#desktopSelectionPanel.is-map-overlay[data-placement="bottom-right"] {
+  right: 16px;
+}
+
+#desktopSelectionPanel.is-map-overlay[data-placement="floating"] {
+  right: auto;
+  bottom: auto;
+}
+
+#desktopSelectionPanel.is-floating-placement .panel-heading {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+#desktopSelectionPanel.is-floating-placement .panel-heading button,
+#desktopSelectionPanel.is-floating-placement .panel-heading a {
+  cursor: pointer;
+}
+
+#desktopSelectionPanel.is-floating-placement.is-dragging .panel-heading {
+  cursor: grabbing;
 }
 
 #desktopSelectionPanel.is-minimized {
   max-height: none;
   overflow: hidden;
+}
+
+#desktopSelectionPanel.is-map-overlay.is-minimized {
+  width: clamp(430px, 42vw, 650px);
 }
 
 #desktopSelectionPanel.is-minimized .panel-heading {
@@ -3051,6 +3086,81 @@ html[data-theme="pawney"] .sidebar {
 
 #desktopSelectionPanel.is-minimized .selection-catalog-shortcut {
   display: none;
+}
+
+#desktopSelectionPanel.is-minimized .selection-title {
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+}
+
+.selection-minimized-coordinates {
+  display: none;
+  grid-template-columns: repeat(3, minmax(48px, auto));
+  align-items: stretch;
+  gap: 6px;
+}
+
+#desktopSelectionPanel.is-minimized .selection-minimized-coordinates {
+  display: grid;
+}
+
+.selection-minimized-coordinate {
+  display: grid;
+  min-width: 48px;
+  min-height: 48px;
+  align-content: center;
+  justify-items: center;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  line-height: 1;
+}
+
+button.selection-minimized-coordinate {
+  cursor: copy;
+}
+
+.selection-minimized-coordinate-label,
+.selection-minimized-coordinate-value {
+  box-sizing: border-box;
+  min-width: 34px;
+  border: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--background) 78%, var(--panel-2));
+  text-align: center;
+}
+
+.selection-minimized-coordinate-label {
+  padding: 4px 7px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.selection-minimized-coordinate-value {
+  padding: 4px 7px;
+  font-size: 12px;
+}
+
+button.selection-minimized-coordinate:hover .selection-minimized-coordinate-label,
+button.selection-minimized-coordinate:hover .selection-minimized-coordinate-value,
+button.selection-minimized-coordinate:focus-visible .selection-minimized-coordinate-label,
+button.selection-minimized-coordinate:focus-visible .selection-minimized-coordinate-value {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 18%, var(--panel-2));
+}
+
+#desktopSelectionPanel.is-sidebar-placement.is-minimized .selection-title {
+  grid-template-columns: 36px minmax(0, 1fr);
+}
+
+#desktopSelectionPanel.is-sidebar-placement.is-minimized .selection-minimized-coordinates {
+  grid-column: 1 / -1;
+  width: 100%;
 }
 
 .selection {
