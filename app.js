@@ -2,7 +2,7 @@ const DATA_URL = "./data/map_site_data.json?v=20260720-fixed-collectible-links-v
 const CHECKLIST_URL = "./data/checklist_data.json?v=20260719-lumen-embers-v001";
 const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260721-item-enrichment-v001";
 const ANIILOG_DATA_URL = "./data/aniilog_data.json?v=20260721-skill-behavior-v001";
-const APP_VERSION = "v0.5.3";
+const APP_VERSION = "v0.5.4";
 const GITHUB_COMMITS_URL = "https://api.github.com/repos/donneeee/MinMax-Aniipedia/commits?sha=main&per_page=30";
 const CHANGELOG_INTERNAL_MARKER_RE = /\[(?:skip changelog|internal)\]/i;
 const CHANGELOG_PUBLIC_ENTRY_LIMIT = 12;
@@ -175,8 +175,10 @@ const DEFAULT_PREFERENCES = Object.freeze({
   showMagicAttack: false,
   language: "en",
   theme: "default",
+  mapSelectionPlacement: "top-right",
   customTheme: DEFAULT_CUSTOM_THEME,
 });
+const DESKTOP_SELECTION_PLACEMENTS = new Set(["top-right", "bottom-right", "sidebar"]);
 const COLORS = [
   "#7fc6b2",
   "#e8bf63",
@@ -236,6 +238,7 @@ const state = {
   selectedSpawnIndex: null,
   locatedSpawnIndex: null,
   mobileSelectionMinimized: true,
+  desktopSelectionMinimized: false,
   sidebarCollapsed: false,
   sidebarView: "map",
   settingsOpen: false,
@@ -352,12 +355,14 @@ const els = {
   itemList: document.querySelector("#itemList"),
   desktopSelectionPanel: document.querySelector("#desktopSelectionPanel"),
   selectionCatalogShortcut: document.querySelector("#selectionCatalogShortcut"),
+  desktopSelectionToggle: document.querySelector("#desktopSelectionToggle"),
   selectionCloseButton: document.querySelector("#selectionCloseButton"),
   selectionDetail: document.querySelector("#selectionDetail"),
   mobileSelectionPanel: document.querySelector("#mobileSelectionPanel"),
   mobileSelectionCatalogShortcut: document.querySelector("#mobileSelectionCatalogShortcut"),
   mobileSelectionDetail: document.querySelector("#mobileSelectionDetail"),
   mobileSelectionToggle: document.querySelector("#mobileSelectionToggle"),
+  mobileSelectionCloseButton: document.querySelector("#mobileSelectionCloseButton"),
   mapPanel: document.querySelector(".map-panel"),
   mapSurface: document.querySelector("#mapSurface"),
   catalogPanel: document.querySelector("#catalogPanel"),
@@ -1101,6 +1106,11 @@ function defaultPreferences() {
   };
 }
 
+function normalizeDesktopSelectionPlacement(value) {
+  const placement = String(value || "").trim().toLowerCase();
+  return DESKTOP_SELECTION_PLACEMENTS.has(placement) ? placement : "top-right";
+}
+
 function hexColorRgb(value) {
   const normalized = normalizeHexColor(value, "#000000");
   return [1, 3, 5].map((offset) => Number.parseInt(normalized.slice(offset, offset + 2), 16));
@@ -1171,6 +1181,7 @@ function loadLocalTracking() {
       showMagicAttack: Boolean(preferences?.showMagicAttack),
       language: window.AniipediaI18n.normalizeLocale(preferences?.language),
       theme: normalizeThemeId(preferences?.theme),
+      mapSelectionPlacement: normalizeDesktopSelectionPlacement(preferences?.mapSelectionPlacement),
       customTheme: normalizeThemeColors(preferences?.customTheme),
     };
   } catch (error) {
@@ -1777,6 +1788,43 @@ function renderSettings() {
   languageNote.textContent = "Language changes apply after the page reloads.";
   languageCard.append(languageCopy, languageLabel, languageNote);
   settingsPanel.append(languageCard);
+
+  const selectionPlacementCard = document.createElement("section");
+  selectionPlacementCard.className = "settings-card settings-selection-placement-card";
+  const selectionPlacementCopy = document.createElement("div");
+  selectionPlacementCopy.className = "settings-account";
+  const selectionPlacementTitle = document.createElement("strong");
+  selectionPlacementTitle.textContent = "Map selection details";
+  const selectionPlacementDetail = document.createElement("small");
+  selectionPlacementDetail.textContent = "Choose where selected marker details appear on desktop.";
+  selectionPlacementCopy.append(selectionPlacementTitle, selectionPlacementDetail);
+  const selectionPlacementLabel = document.createElement("label");
+  selectionPlacementLabel.className = "settings-selection-placement-field";
+  const selectionPlacementLabelText = document.createElement("span");
+  selectionPlacementLabelText.textContent = "Desktop position";
+  const selectionPlacementSelect = document.createElement("select");
+  [
+    { value: "top-right", label: "Top right (recommended)" },
+    { value: "bottom-right", label: "Bottom right" },
+    { value: "sidebar", label: "Sidebar" },
+  ].forEach(({ value, label }) => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = label;
+    selectionPlacementSelect.append(option);
+  });
+  selectionPlacementSelect.value = normalizeDesktopSelectionPlacement(state.preferences.mapSelectionPlacement);
+  selectionPlacementSelect.addEventListener("change", () => {
+    state.preferences.mapSelectionPlacement = normalizeDesktopSelectionPlacement(selectionPlacementSelect.value);
+    persistLocalTracking();
+    syncDesktopSelectionPlacement();
+  });
+  selectionPlacementLabel.append(selectionPlacementLabelText, selectionPlacementSelect);
+  const selectionPlacementNote = document.createElement("small");
+  selectionPlacementNote.className = "settings-language-note";
+  selectionPlacementNote.textContent = "Phones and touch-oriented layouts always use the compact bottom sheet.";
+  selectionPlacementCard.append(selectionPlacementCopy, selectionPlacementLabel, selectionPlacementNote);
+  settingsPanel.append(selectionPlacementCard);
 
   const account = document.createElement("div");
   account.className = "settings-card";
@@ -6300,13 +6348,41 @@ function updateMobileSelectionPanel() {
   els.mobileSelectionToggle.title = label;
 }
 
+function updateDesktopSelectionPanel() {
+  const minimized = state.desktopSelectionMinimized;
+  els.desktopSelectionPanel.classList.toggle("is-minimized", minimized);
+  els.desktopSelectionToggle.textContent = minimized ? "+" : "−";
+  els.desktopSelectionToggle.setAttribute("aria-expanded", String(!minimized));
+  const label = minimized ? "Expand selection" : "Minimize selection";
+  els.desktopSelectionToggle.setAttribute("aria-label", label);
+  els.desktopSelectionToggle.title = label;
+}
+
+function syncDesktopSelectionPlacement() {
+  const placement = normalizeDesktopSelectionPlacement(state.preferences.mapSelectionPlacement);
+  const inSidebar = placement === "sidebar";
+  state.preferences.mapSelectionPlacement = placement;
+  const target = inSidebar ? els.sidebar : els.mapSurface;
+  if (els.desktopSelectionPanel.parentElement !== target) target.append(els.desktopSelectionPanel);
+  els.desktopSelectionPanel.dataset.placement = placement;
+  els.desktopSelectionPanel.classList.toggle("is-map-overlay", !inSidebar);
+  els.desktopSelectionPanel.classList.toggle("is-sidebar-placement", inSidebar);
+  setDesktopSelectionVisible(state.selectedSpawnIndex !== null);
+  updateDesktopSelectionPanel();
+}
+
 function setMobileSelectionMinimized(minimized) {
   state.mobileSelectionMinimized = Boolean(minimized);
   updateMobileSelectionPanel();
 }
 
+function setDesktopSelectionMinimized(minimized) {
+  state.desktopSelectionMinimized = Boolean(minimized);
+  updateDesktopSelectionPanel();
+}
+
 function setDesktopSelectionVisible(visible) {
-  els.desktopSelectionPanel.hidden = !visible;
+  els.desktopSelectionPanel.hidden = !visible || MOBILE_LAYOUT_QUERY.matches;
 }
 
 function dismissSelection() {
@@ -6317,6 +6393,7 @@ function dismissSelection() {
   clearLocatedSpawn();
   hideCanvasTooltip();
   state.mobileSelectionMinimized = true;
+  state.desktopSelectionMinimized = false;
   clearSelectionDetails("No marker selected");
   setDesktopSelectionVisible(false);
   updateMobileSelectionPanel();
@@ -8250,11 +8327,12 @@ function selectSpawn(index) {
   if (pin) pin.classList.add("selected");
   state.selectedPin = pin;
   if (state.canvasMode) scheduleCanvasRender();
-  setDesktopSelectionVisible(true);
   renderSelectionDetail(els.selectionDetail, spawn, item);
   renderSelectionDetail(els.mobileSelectionDetail, spawn, item);
   updateSelectionCatalogShortcuts(spawn, item);
-  setMobileSelectionMinimized(false);
+  setDesktopSelectionVisible(true);
+  updateDesktopSelectionPanel();
+  setMobileSelectionMinimized(true);
 }
 
 function refreshSelectionDetails() {
@@ -8643,11 +8721,16 @@ function bindEvents() {
   els.mobileSelectionToggle.addEventListener("click", () => {
     setMobileSelectionMinimized(!state.mobileSelectionMinimized);
   });
+  els.desktopSelectionToggle.addEventListener("click", () => {
+    setDesktopSelectionMinimized(!state.desktopSelectionMinimized);
+  });
   els.selectionCatalogShortcut.addEventListener("click", openSelectedMarkerCatalogEntry);
   els.selectionCloseButton.addEventListener("click", dismissSelection);
   els.mobileSelectionCatalogShortcut.addEventListener("click", openSelectedMarkerCatalogEntry);
+  els.mobileSelectionCloseButton.addEventListener("click", dismissSelection);
   MOBILE_LAYOUT_QUERY.addEventListener("change", () => {
     if (state.selectedSpawnIndex === null) state.mobileSelectionMinimized = true;
+    syncDesktopSelectionPlacement();
     updateMobileSelectionPanel();
     scheduleMobileCatalogStickyIdentity();
     window.requestAnimationFrame(fitMap);
@@ -8854,6 +8937,7 @@ function bindEvents() {
 async function init() {
   loadLocalTracking();
   applyThemePreference();
+  syncDesktopSelectionPlacement();
   try {
     await window.AniipediaI18n.load(state.preferences.language);
   } catch (error) {

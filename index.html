@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#1a1f22">
     <title>MinMax's Aniipedia</title>
-    <link rel="stylesheet" href="./styles.css?v=20260722-sidebar-low-height-v001">
+    <link rel="stylesheet" href="./styles.css?v=20260722-selection-placement-v001">
   </head>
   <body>
     <main id="appShell" class="app-shell">
@@ -21,9 +21,6 @@
               <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
               <circle cx="12" cy="12" r="3" />
             </svg>
-          </button>
-          <button id="sidebarCollapseButton" class="sidebar-collapse-button" type="button" aria-controls="sidebar" aria-expanded="true" aria-label="Collapse sidebar" title="Collapse sidebar">
-            <span aria-hidden="true">&lsaquo;</span>
           </button>
         </header>
 
@@ -101,6 +98,7 @@
             <h2>Selection</h2>
             <div class="selection-heading-actions">
               <button id="selectionCatalogShortcut" class="selection-catalog-shortcut" type="button" hidden></button>
+              <button id="desktopSelectionToggle" class="selection-minimize-button" type="button" aria-controls="selectionDetail" aria-expanded="true" aria-label="Minimize selection" title="Minimize selection">&minus;</button>
               <button id="selectionCloseButton" class="selection-close-button" type="button" aria-label="Close selection" title="Close selection">&times;</button>
             </div>
           </div>
@@ -113,6 +111,9 @@
       </button>
 
       <section class="map-panel" aria-label="Interactive map and catalogue">
+        <button id="sidebarCollapseButton" class="sidebar-collapse-button" type="button" aria-controls="sidebar" aria-expanded="true" aria-label="Collapse sidebar" title="Collapse sidebar">
+          <span aria-hidden="true">&lsaquo;</span>
+        </button>
         <div id="mapSurface" class="map-surface">
           <div class="map-toolbar">
             <button id="zoomOutButton" type="button" aria-label="Zoom out">-</button>
@@ -135,6 +136,7 @@
               <div class="mobile-selection-actions">
                 <button id="mobileSelectionCatalogShortcut" class="selection-catalog-shortcut" type="button" hidden></button>
                 <button id="mobileSelectionToggle" class="mobile-selection-toggle" type="button" aria-controls="mobileSelectionDetail" aria-expanded="false" aria-label="Expand selection" title="Expand selection">+</button>
+                <button id="mobileSelectionCloseButton" class="selection-close-button mobile-selection-close-button" type="button" aria-label="Close selection" title="Close selection">&times;</button>
               </div>
             </div>
             <div id="mobileSelectionDetail" class="selection empty">No marker selected</div>
@@ -167,8 +169,8 @@
     </div>
 
   <script defer src="./app-config.js?v=20260722-short-share-v001"></script>
-  <script defer src="./localization.js?v=20260722-selection-dismiss-v001"></script>
+  <script defer src="./localization.js?v=20260722-selection-placement-v001"></script>
   <script defer src="./team-builder.js?v=20260721-team-levels-v001"></script>
-  <script defer src="./app.js?v=20260722-v053"></script>
+  <script defer src="./app.js?v=20260722-v054"></script>
   </body>
 </html>

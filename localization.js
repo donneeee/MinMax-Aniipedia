@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const ASSET_VERSION = "20260721-localization-v027";
+  const ASSET_VERSION = "20260722-localization-v028";
   const SUPPORTED_LANGUAGES = Object.freeze({
     en: { label: "English", htmlLang: "en" },
     "zh-CN": { label: "简体中文", htmlLang: "zh-CN" },
@@ -142,6 +142,13 @@
     ["Settings sections", "设置分区", "設定セクション", "설정 섹션"],
     ["General Settings", "常规设置", "一般設定", "일반 설정"],
     ["Themes", "主题", "テーマ", "테마"],
+    ["Map selection details", "地图选择详情", "マップ選択の詳細", "지도 선택 세부 정보"],
+    ["Keep selected marker details out of the filter list on desktop. Placement updates immediately.", "在桌面端将所选标记的详情移出筛选列表。位置会立即更新。", "デスクトップでは選択したマーカーの詳細をフィルター一覧の外に表示します。位置はすぐに更新されます。", "데스크톱에서는 선택한 마커의 세부 정보를 필터 목록 밖에 표시합니다. 위치는 즉시 변경됩니다."],
+    ["Desktop position", "桌面端位置", "デスクトップでの位置", "데스크톱 위치"],
+    ["Top right (recommended)", "右上角（推荐）", "右上（推奨）", "오른쪽 위(권장)"],
+    ["Bottom right", "右下角", "右下", "오른쪽 아래"],
+    ["Sidebar", "侧边栏", "サイドバー", "사이드바"],
+    ["Mobile always uses a compact touch bar that expands into a bottom sheet.", "移动端始终使用紧凑的触控栏，展开后显示为底部面板。", "モバイルでは常に、展開するとボトムシートになるコンパクトなタッチバーを使用します。", "모바일에서는 항상 펼치면 하단 시트가 되는 간결한 터치 바를 사용합니다."],
     ["Filter shortcuts", "筛选快捷操作", "フィルターショートカット", "필터 단축키"],
     ["Map shortcuts", "地图快捷操作", "マップショートカット", "지도 단축키"],
     ["Copy pin link", "复制图钉链接", "ピンのリンクをコピー", "핀 링크 복사"],
