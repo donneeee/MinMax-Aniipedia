@@ -2,7 +2,7 @@ const DATA_URL = "./data/map_site_data.json?v=20260720-fixed-collectible-links-v
 const CHECKLIST_URL = "./data/checklist_data.json?v=20260719-lumen-embers-v001";
 const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260721-item-enrichment-v001";
 const ANIILOG_DATA_URL = "./data/aniilog_data.json?v=20260721-skill-behavior-v001";
-const APP_VERSION = "v0.5.9";
+const APP_VERSION = "v0.5.10";
 const GITHUB_COMMITS_URL = "https://api.github.com/repos/donneeee/MinMax-Aniipedia/commits?sha=main&per_page=30";
 const CHANGELOG_INTERNAL_MARKER_RE = /\[(?:skip changelog|internal)\]/i;
 const CHANGELOG_PUBLIC_ENTRY_LIMIT = 12;
@@ -37,7 +37,7 @@ const UNDERGROUND_MAP_LAYERS = Object.freeze({
   "country-of-time": Object.freeze({
     offIcon: "./assets/icons/map-layer-underground-off.png",
     onIcon: "./assets/icons/map-layer-underground-on.png",
-    defaultPlanId: "path-2",
+    defaultPlanId: "all",
     plans: Object.freeze([
       Object.freeze({
         id: "path-1",
@@ -6432,26 +6432,31 @@ function undergroundLayerForCurrentMap() {
 function selectedUndergroundPlanIndex(layer = undergroundLayerForCurrentMap()) {
   if (!layer?.plans?.length) return -1;
   const selectedId = state.undergroundForegroundPlans.get(state.activeMapId) || layer.defaultPlanId;
-  const selectedIndex = layer.plans.findIndex((plan) => plan.id === selectedId);
+  const modes = [{ id: "all", label: "All underground areas" }, ...layer.plans];
+  const selectedIndex = modes.findIndex((plan) => plan.id === selectedId);
   return selectedIndex >= 0 ? selectedIndex : 0;
 }
 
 function updateUndergroundPlanOrdering() {
   const layer = undergroundLayerForCurrentMap();
+  const modes = layer?.plans?.length
+    ? [{ id: "all", label: "All underground areas" }, ...layer.plans]
+    : [];
   const selectedIndex = selectedUndergroundPlanIndex(layer);
-  const selectedPlan = layer?.plans?.[selectedIndex];
-  els.mapUndergroundLayer.querySelectorAll(".map-underground-plan").forEach((planElement, index) => {
-    const foreground = index === selectedIndex;
-    planElement.classList.toggle("is-foreground", foreground);
-    planElement.hidden = !foreground;
-    planElement.style.zIndex = foreground ? "1" : "0";
+  const selectedMode = modes[selectedIndex];
+  const showAll = selectedMode?.id === "all";
+  els.mapUndergroundLayer.querySelectorAll(".map-underground-plan").forEach((planElement) => {
+    const visible = showAll || planElement.dataset.planId === selectedMode?.id;
+    planElement.classList.toggle("is-foreground", visible);
+    planElement.hidden = !visible;
+    planElement.style.zIndex = visible ? "1" : "0";
   });
 
-  if (!selectedPlan) return;
-  state.undergroundForegroundPlans.set(state.activeMapId, selectedPlan.id);
-  els.undergroundPlanToggleLabel.textContent = selectedPlan.label;
-  const nextIndex = (selectedIndex + 1) % layer.plans.length;
-  const label = `Showing ${selectedPlan.label}. Switch to ${layer.plans[nextIndex].label}`;
+  if (!selectedMode) return;
+  state.undergroundForegroundPlans.set(state.activeMapId, selectedMode.id);
+  els.undergroundPlanToggleLabel.textContent = selectedMode.id === "all" ? "All" : selectedMode.label;
+  const nextIndex = (selectedIndex + 1) % modes.length;
+  const label = `Showing ${selectedMode.label}. Switch to ${modes[nextIndex].label}`;
   els.undergroundPlanToggle.setAttribute("aria-label", label);
   els.undergroundPlanToggle.title = label;
 }
@@ -9156,13 +9161,18 @@ function bindEvents() {
   els.undergroundLayerToggle.addEventListener("click", () => {
     if (!undergroundLayerForCurrentMap()) return;
     state.undergroundLayerVisible = !state.undergroundLayerVisible;
+    if (state.undergroundLayerVisible) {
+      state.undergroundForegroundPlans.set(state.activeMapId, "all");
+      updateUndergroundPlanOrdering();
+    }
     updateUndergroundMapLayerVisibility();
   });
   els.undergroundPlanToggle.addEventListener("click", () => {
     const layer = undergroundLayerForCurrentMap();
     if (!layer?.plans?.length) return;
-    const nextIndex = (selectedUndergroundPlanIndex(layer) + 1) % layer.plans.length;
-    state.undergroundForegroundPlans.set(state.activeMapId, layer.plans[nextIndex].id);
+    const modes = [{ id: "all", label: "All underground areas" }, ...layer.plans];
+    const nextIndex = (selectedUndergroundPlanIndex(layer) + 1) % modes.length;
+    state.undergroundForegroundPlans.set(state.activeMapId, modes[nextIndex].id);
     updateUndergroundPlanOrdering();
   });
   els.mapViewport.addEventListener("wheel", (event) => {
