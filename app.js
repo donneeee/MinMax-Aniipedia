@@ -2,7 +2,7 @@ const DATA_URL = "./data/map_site_data.json?v=20260720-fixed-collectible-links-v
 const CHECKLIST_URL = "./data/checklist_data.json?v=20260719-lumen-embers-v001";
 const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260721-item-enrichment-v001";
 const ANIILOG_DATA_URL = "./data/aniilog_data.json?v=20260721-skill-behavior-v001";
-const APP_VERSION = "v0.5.6";
+const APP_VERSION = "v0.5.7";
 const GITHUB_COMMITS_URL = "https://api.github.com/repos/donneeee/MinMax-Aniipedia/commits?sha=main&per_page=30";
 const CHANGELOG_INTERNAL_MARKER_RE = /\[(?:skip changelog|internal)\]/i;
 const CHANGELOG_PUBLIC_ENTRY_LIMIT = 12;
@@ -33,6 +33,25 @@ const MOBILE_LAYOUT_QUERY = window.matchMedia(
   "(max-width: 820px), (max-height: 540px) and (pointer: coarse)",
 );
 const DESKTOP_SIDEBAR_QUERY = window.matchMedia("(min-width: 821px) and (pointer: fine)");
+const UNDERGROUND_MAP_LAYERS = Object.freeze({
+  "country-of-time": Object.freeze({
+    offIcon: "./assets/icons/map-layer-underground-off.png",
+    onIcon: "./assets/icons/map-layer-underground-on.png",
+    tiles: Object.freeze([
+      { src: "./assets/maps/underground/breezy-plains/underground-01.png", left: 928, top: 1792, width: 256, height: 256 },
+      { src: "./assets/maps/underground/breezy-plains/underground-02.png", left: 928, top: 2048, width: 256, height: 256 },
+      { src: "./assets/maps/underground/breezy-plains/underground-03.png", left: 1184, top: 1792, width: 256, height: 256 },
+      { src: "./assets/maps/underground/breezy-plains/underground-04.png", left: 1184, top: 2048, width: 256, height: 256 },
+      { src: "./assets/maps/underground/breezy-plains/underground-05.png", left: 1184, top: 2304, width: 256, height: 256 },
+      { src: "./assets/maps/underground/breezy-plains/underground-06.png", left: 1440, top: 1792, width: 256, height: 256 },
+      { src: "./assets/maps/underground/breezy-plains/underground-07.png", left: 1440, top: 2048, width: 256, height: 256 },
+      { src: "./assets/maps/underground/breezy-plains/underground-08.png", left: -96, top: 1024, width: 1024, height: 1024 },
+      { src: "./assets/maps/underground/breezy-plains/underground-09.png", left: 928, top: 1024, width: 1024, height: 1024 },
+      { src: "./assets/maps/underground/breezy-plains/underground-10.png", left: 928, top: 1024, width: 1024, height: 1024 },
+      { src: "./assets/maps/underground/breezy-plains/underground-11.png", left: 928, top: 2048, width: 1024, height: 1024 },
+    ]),
+  }),
+});
 // Reserved for temporarily suppressing incomplete physical reward sources.
 const TEMPORARILY_HIDDEN_ITEM_IDS = new Set();
 const ANIILOG_STAT_CONFIG = Object.freeze([
@@ -234,6 +253,7 @@ const state = {
   collapsedMiscGroups: new Set(),
   renderedMapGroups: new Map(),
   activeMapId: REQUESTED_MAP_ID || "country-of-time",
+  undergroundLayerVisible: false,
   activeLayer: "items",
   search: "",
   scale: 1,
@@ -382,10 +402,13 @@ const els = {
   mapWorld: document.querySelector("#mapWorld"),
   mapTiles: document.querySelector("#mapTiles"),
   mapImage: document.querySelector("#mapImage"),
+  mapUndergroundLayer: document.querySelector("#mapUndergroundLayer"),
   pinLayer: document.querySelector("#pinLayer"),
   pinCanvas: document.querySelector("#pinCanvas"),
   pinTooltip: document.querySelector("#pinTooltip"),
   coordinateReadout: document.querySelector("#coordinateReadout"),
+  undergroundLayerToggle: document.querySelector("#undergroundLayerToggle"),
+  undergroundLayerToggleIcon: document.querySelector("#undergroundLayerToggleIcon"),
   selectAllButton: document.querySelector("#selectAllButton"),
   selectNoneButton: document.querySelector("#selectNoneButton"),
   sharePinsButton: document.querySelector("#sharePinsButton"),
@@ -6393,6 +6416,47 @@ function renderMapBase() {
   scheduleMapTileDetail();
 }
 
+function undergroundLayerForCurrentMap() {
+  return UNDERGROUND_MAP_LAYERS[state.activeMapId] || null;
+}
+
+function updateUndergroundMapLayerVisibility() {
+  const layer = undergroundLayerForCurrentMap();
+  const visible = Boolean(layer && state.undergroundLayerVisible);
+  els.mapUndergroundLayer.hidden = !visible;
+  els.undergroundLayerToggle.hidden = !layer;
+  els.undergroundLayerToggle.setAttribute("aria-pressed", String(visible));
+  const label = visible ? "Hide underground map" : "Show underground map";
+  els.undergroundLayerToggle.setAttribute("aria-label", label);
+  els.undergroundLayerToggle.title = label;
+  if (layer) {
+    els.undergroundLayerToggleIcon.src = visible ? layer.onIcon : layer.offIcon;
+  }
+}
+
+function renderUndergroundMapLayer() {
+  const layer = undergroundLayerForCurrentMap();
+  els.mapUndergroundLayer.replaceChildren();
+  if (layer) {
+    const fragment = document.createDocumentFragment();
+    layer.tiles.forEach((tile) => {
+      const image = document.createElement("img");
+      image.className = "map-underground-tile";
+      image.src = tile.src;
+      image.alt = "";
+      image.draggable = false;
+      image.setAttribute("aria-hidden", "true");
+      image.style.left = `${tile.left}px`;
+      image.style.top = `${tile.top}px`;
+      image.style.width = `${tile.width}px`;
+      image.style.height = `${tile.height}px`;
+      fragment.append(image);
+    });
+    els.mapUndergroundLayer.append(fragment);
+  }
+  updateUndergroundMapLayerVisibility();
+}
+
 function updateMobileSelectionPanel() {
   const isMobile = MOBILE_LAYOUT_QUERY.matches;
   const minimized = isMobile && state.mobileSelectionMinimized;
@@ -8534,8 +8598,20 @@ function renderSelectionDetail(detail, spawn, item) {
   });
   const small = document.createElement("small");
   small.className = "selection-subtitle";
+  const normalizedSelectionName = ` ${String(spawn.display_name || "")
+    .toLocaleLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim()} `;
+  const normalizedFormLabel = String(spawn.form_label || "")
+    .toLocaleLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim();
+  const subtitleFormLabel = normalizedFormLabel
+    && !normalizedSelectionName.includes(` ${normalizedFormLabel} `)
+    ? spawn.form_label
+    : "";
   const subtitle = [
-    spawn.form_label,
+    subtitleFormLabel,
     areaDetailValue(spawn) || mapRegionForSpawn(spawn) || markerTypeLabel(spawn.marker_type),
   ].filter(Boolean).join(" - ");
   if (subtitle) {
@@ -8895,6 +8971,7 @@ function switchMap(mapId, preserveSharedPins = false) {
   els.coordinateReadout.textContent = "X 0, Y 0";
   const map = currentMap();
   renderMapBase();
+  renderUndergroundMapLayer();
   els.mapWorld.style.width = `${map.width}px`;
   els.mapWorld.style.height = `${map.height}px`;
   renderItems();
@@ -9032,6 +9109,11 @@ function bindEvents() {
     zoomAt(rect.left + rect.width / 2, rect.top + rect.height / 2, state.scale / 1.25);
   });
   els.fitButton.addEventListener("click", fitMap);
+  els.undergroundLayerToggle.addEventListener("click", () => {
+    if (!undergroundLayerForCurrentMap()) return;
+    state.undergroundLayerVisible = !state.undergroundLayerVisible;
+    updateUndergroundMapLayerVisibility();
+  });
   els.mapViewport.addEventListener("wheel", (event) => {
     event.preventDefault();
     const factor = event.deltaY < 0 ? 1.12 : 0.88;

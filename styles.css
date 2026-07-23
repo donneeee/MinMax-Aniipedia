@@ -3017,7 +3017,7 @@ html[data-theme="pawney"] .sidebar {
 #desktopSelectionPanel.is-map-overlay {
   position: absolute;
   z-index: 6;
-  width: clamp(360px, 31vw, 480px);
+  width: clamp(360px, 25vw, 380px);
   max-width: calc(100% - 32px);
   max-height: min(68%, 540px);
   margin: 0;
@@ -3103,7 +3103,7 @@ html[data-theme="pawney"] .sidebar {
   justify-items: center;
   gap: 4px;
   margin: 0;
-  padding: 0 10px;
+  padding: 0 6px;
   border: 0;
   border-left: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
   background: transparent;
@@ -6675,17 +6675,56 @@ button.catalog-item-reference {
   z-index: 4;
 }
 
-.coordinate-readout {
+.map-readout-cluster {
   position: absolute;
   right: 16px;
   top: 16px;
   z-index: 4;
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.coordinate-readout {
   border: 1px solid var(--line);
   border-radius: 6px;
   background: rgba(var(--background-rgb), 0.82);
   color: var(--text);
   font-size: 13px;
   padding: 9px 11px;
+}
+
+.map-layer-toggle {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  min-height: 38px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: rgba(var(--background-rgb), 0.84);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.map-layer-toggle:hover,
+.map-layer-toggle:focus-visible,
+.map-layer-toggle[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--surface-raised) 88%, var(--accent) 12%);
+}
+
+.map-layer-toggle img {
+  display: block;
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.map-layer-toggle[hidden] {
+  display: none;
 }
 
 .map-viewport {
@@ -6708,6 +6747,7 @@ button.catalog-item-reference {
   width: 1024px;
   height: 1024px;
   contain: layout paint;
+  overflow: hidden;
   transform-origin: 0 0;
   will-change: transform;
 }
@@ -6746,6 +6786,26 @@ button.catalog-item-reference {
 
 .map-image[hidden] {
   display: none;
+}
+
+.map-underground-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.map-underground-layer[hidden] {
+  display: none;
+}
+
+.map-underground-tile {
+  position: absolute;
+  display: block;
+  max-width: none;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 .pin-layer {
