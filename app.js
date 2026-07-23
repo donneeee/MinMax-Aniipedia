@@ -2,7 +2,7 @@ const DATA_URL = "./data/map_site_data.json?v=20260720-fixed-collectible-links-v
 const CHECKLIST_URL = "./data/checklist_data.json?v=20260719-lumen-embers-v001";
 const ITEMLOG_DATA_URL = "./data/itemlog_data.json?v=20260721-item-enrichment-v001";
 const ANIILOG_DATA_URL = "./data/aniilog_data.json?v=20260721-skill-behavior-v001";
-const APP_VERSION = "v0.5.10";
+const APP_VERSION = "v0.5.11";
 const GITHUB_COMMITS_URL = "https://api.github.com/repos/donneeee/MinMax-Aniipedia/commits?sha=main&per_page=30";
 const CHANGELOG_INTERNAL_MARKER_RE = /\[(?:skip changelog|internal)\]/i;
 const CHANGELOG_PUBLIC_ENTRY_LIMIT = 12;
@@ -53,6 +53,32 @@ const UNDERGROUND_MAP_LAYERS = Object.freeze({
         tiles: Object.freeze([
           { src: "./assets/maps/underground/breezy-plains/underground-10.png", left: 928, top: 1024, width: 1024, height: 1024 },
           { src: "./assets/maps/underground/breezy-plains/underground-11.png", left: 928, top: 2048, width: 1024, height: 1024 },
+        ]),
+      }),
+      Object.freeze({
+        id: "path-3",
+        label: "Geoclaw Cavern",
+        tiles: Object.freeze([
+          {
+            src: "./assets/maps/underground/breezy-plains/geoclaw-boundary.png?v=20260722-underground-boundaries-v001",
+            left: 980,
+            top: 1511,
+            width: 206,
+            height: 179,
+          },
+        ]),
+      }),
+      Object.freeze({
+        id: "path-4",
+        label: "Magmarex Cavern",
+        tiles: Object.freeze([
+          {
+            src: "./assets/maps/underground/breezy-plains/magmarex-boundary.png?v=20260722-underground-boundaries-v001",
+            left: 3478,
+            top: 672,
+            width: 648,
+            height: 342,
+          },
         ]),
       }),
     ]),
